@@ -34,7 +34,7 @@ if(NOT MSVC)
 	#add_definitions(-Wall)
 	#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu90")
 	#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++11")
-	add_definitions(-std=c++11 -Wall -Wextra -pedantic -pipe -Ofast)
+	add_definitions(-std=c++11 -Wall -Wextra -pedantic -pipe ) #-Ofast
 	set(CMAKE_CXX_STANDARD 11)
 endif()
 

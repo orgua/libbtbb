@@ -316,7 +316,7 @@ record_bredr_master_clock_info( PCAPNG_HANDLE * handle,
 		},
 		.clock_info = {
 			.ts = ns,
-			.lap_uap = htole32(bd_addr & 0xffffffff),
+			.lap_uap = static_cast<uint32_t>(htole32(bd_addr & 0xffffffff)),
 			.clk = clk,
 			.clk_mask = clk_mask
 		}

@@ -29,7 +29,7 @@ constexpr uint16_t 	MAX_SYMBOLS 	= 3125; // TODO: also assert?
 
 /* maximum number of payload bits */
 constexpr uint16_t 	MAX_PAYLOAD_LENGTH = 2744;
-static_assert(MAX_PAYLOAD_LENGTH * 8 <= std::numeric_limits<uint16_t>::max());
+static_assert(MAX_PAYLOAD_LENGTH * 8 <= std::numeric_limits<uint16_t>::max(), "implementation is limited!");
 
 /* minimum header bit errors to indicate that this is an ID packet */
 constexpr uint8_t 	ID_THRESHOLD 	= 5;
@@ -130,7 +130,7 @@ uint16_t HV(uint32_t clock, btbb_packet* p);
 uint16_t crc_check(uint32_t clock, btbb_packet* p);
 
 /* format payload for tun interface */
-uint8_t * const tun_format(btbb_packet* p);
+uint8_t * tun_format(btbb_packet* p);
 
 /* try a clock value (CLK1-6) to unwhiten packet header,
  * sets resultant d_packet_type and d_UAP, returns UAP.

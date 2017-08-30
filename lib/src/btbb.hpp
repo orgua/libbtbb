@@ -118,12 +118,12 @@ void btbb_packet_set_data(btbb_packet *pkt,
 		uint32_t clkn);  // 312.5us clock (CLK27-0)
 
 /* Get a pointer to packet symbols. */
-uint8_t * const btbb_get_symbols(const btbb_packet * pkt);
+uint8_t * btbb_get_symbols(const btbb_packet * pkt);
 
 uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt);
 
 /* Get a pointer to payload. */
-uint8_t * const btbb_get_payload(const btbb_packet* pkt);
+uint8_t * btbb_get_payload(const btbb_packet* pkt);
 
 /* Pack the payload in to bytes */
 uint16_t btbb_get_payload_packed(const btbb_packet* pkt, uint8_t *dst);
@@ -181,7 +181,7 @@ bool btbb_piconet_set_channel_seen(btbb_piconet *pn, uint8_t channel);
 bool btbb_piconet_clear_channel_seen(btbb_piconet *pn, uint8_t channel);
 bool btbb_piconet_get_channel_seen(btbb_piconet *pn, uint8_t channel);
 void btbb_piconet_set_afh_map(btbb_piconet *pn, uint8_t *afh_map);
-uint8_t * const btbb_piconet_get_afh_map(btbb_piconet *pn);
+uint8_t * btbb_piconet_get_afh_map(btbb_piconet *pn);
 
 /* Extract as much information (LAP/UAP/CLK) as possible from received packet */
 bool btbb_process_packet(btbb_packet *pkt, btbb_piconet *pn);

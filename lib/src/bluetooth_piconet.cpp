@@ -151,7 +151,7 @@ void btbb_piconet_set_afh_map(btbb_piconet * const pn, const uint8_t * const afh
 	if(btbb_piconet_get_flag(pn, BTBB_UAP_VALID))  get_hop_pattern(pn);
 }
 
-uint8_t * const btbb_piconet_get_afh_map(btbb_piconet * const pn)
+uint8_t * btbb_piconet_get_afh_map(btbb_piconet * const pn)
 {
 	return pn->afh_map;
 }
@@ -159,7 +159,7 @@ uint8_t * const btbb_piconet_get_afh_map(btbb_piconet * const pn)
 bool btbb_piconet_set_channel_seen(btbb_piconet * const pn, const uint8_t channel)
 {
 	const uint8_t channel_ub = channel >> 3;
-	const uint8_t channel_af = uint8_t(0x1) << (channel & 0b111);
+	const uint8_t channel_af = uint8_t(0x1) << (channel & 0x07);
     if(!(pn->afh_map[channel_ub] & channel_af))
     {
 		pn->afh_map[channel_ub] |= channel_af;
@@ -172,7 +172,7 @@ bool btbb_piconet_set_channel_seen(btbb_piconet * const pn, const uint8_t channe
 bool btbb_piconet_clear_channel_seen(btbb_piconet * const pn, const uint8_t channel)
 {
     const uint8_t channel_ub = channel >> 3;
-    const uint8_t channel_af = uint8_t(0x1) << (channel & 0b111);
+    const uint8_t channel_af = uint8_t(0x1) << (channel & 0x07);
     if((pn->afh_map[channel_ub] & channel_af))
     {
 		pn->afh_map[channel_ub] &= ~channel_af;
@@ -185,7 +185,7 @@ bool btbb_piconet_clear_channel_seen(btbb_piconet * const pn, const uint8_t chan
 bool btbb_piconet_get_channel_seen(btbb_piconet * const pn, const uint8_t channel)
 {
     const uint8_t channel_ub = channel >> 3;
-    const uint8_t channel_af = uint8_t(0x1) << (channel & 0b111);
+    const uint8_t channel_af = uint8_t(0x1) << (channel & 0x07);
     if(channel < BT_NUM_CHANNELS) return ( pn->afh_map[channel_ub] & channel_af ) != 0;
     else                          return true;
 }
@@ -259,7 +259,7 @@ void perm_table_init() // TODO: can be done as constexpression
                 constexpr uint8_t INDEX_2[14] = {1, 3, 2, 4, 4, 3, 2, 4, 4, 3, 4, 3, 3, 2};
 
                 /* butterfly operations */
-                for (uint8_t i = 13; i >= 0; i--)
+                for (uint8_t i = 13; i <= 13; i--)
                 {
                     /* swap bits according to index arrays if control signal tells us to */
                     if (p_bit[i])
@@ -361,7 +361,7 @@ void gen_hop_pattern(btbb_piconet * const pn)
 {
 	printf("\nCalculating complete hopping sequence.\n");
 	/* this holds the entire hopping sequence */
-	pn->sequence = new uint8_t(SEQUENCE_LENGTH);
+	pn->sequence = new uint8_t[SEQUENCE_LENGTH];
 
 	precalc(pn);
 	address_precalc(((pn->UAP<<24) | pn->LAP) & 0xfffffff, pn); // TODO: ask dominic if this mask is correct
@@ -384,7 +384,7 @@ void get_hop_pattern(btbb_piconet * const pn)
 {
 	/* Two stages to avoid "left shift count >= width of type" warning */
 	const bool afh_flag = btbb_piconet_get_flag(pn, BTBB_IS_AFH);
-	const uint64_t key = (afh_flag<<39) | ((uint64_t)pn->used_channels<<32) | ((uint32_t)pn->UAP<<24) | pn->LAP;
+	const uint64_t key = (uint64_t(afh_flag)<<39) | (uint64_t(pn->used_channels)<<32) | (uint32_t(pn->UAP)<<24) | pn->LAP;
     hopping_struct *s;
 	HASH_FIND(hh, hopping_map, &key, 4, s);
 
@@ -473,7 +473,7 @@ uint32_t btbb_init_hop_reversal(const bool aliased, btbb_piconet * const pn)
     const size_t     max_candidates = (aliased) ? max_candidates_ali : max_candidates_nom;
 
 	/* this can hold twice the approximate number of initial candidates */
-	pn->clock_candidates = new uint32_t(max_candidates);
+	pn->clock_candidates = new uint32_t[max_candidates];
 
 	const uint32_t clock = (pn->clk_offset + pn->first_pkt_time) & 0x3f; // TODO: aks dominic if this is right
 	pn->num_candidates = init_candidates(pn->pattern_channels[0], clock, pn);

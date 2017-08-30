@@ -423,17 +423,20 @@ size_t promiscuous_packet_search(const uint8_t * const stream, const size_t sear
 
 /* Matching a specific LAP */
 size_t find_known_lap(const uint8_t * const stream, const size_t search_length, const uint32_t lap,
-				   const size_t max_ac_errors, uint8_t *ac_errors) {
+				   const size_t max_ac_errors, uint8_t *ac_errors)
+{
 	uint64_t syncword, ac;
 	size_t offset = std::numeric_limits<size_t>::max();
 
 	ac = btbb_gen_syncword(lap);
-	for (size_t count = 0; count < search_length; count++) {
+	for (size_t count = 0; count < search_length; count++)
+	{
 		const uint8_t * const symbols = &stream[count];
 		syncword = air_to_host64(symbols, 64);
 		*ac_errors = count_bits(syncword ^ ac);
 
-		if (*ac_errors <= max_ac_errors) {
+		if (*ac_errors <= max_ac_errors)
+		{
 			offset = count;
 			break;
 		}
@@ -441,7 +444,7 @@ size_t find_known_lap(const uint8_t * const stream, const size_t search_length, 
 	return offset;
 }
 
-/* Looks for an AC in the stream */
+/* Looks for an AC in the stream, NOTE: interface changed, -1 is now max() */
 size_t btbb_find_ac(const uint8_t * const stream, const size_t search_length, uint32_t lap,
 				 const size_t max_ac_errors, btbb_packet **pkt_ptr) {
 	size_t offset;
@@ -459,7 +462,8 @@ size_t btbb_find_ac(const uint8_t * const stream, const size_t search_length, ui
     }
 
 
-	if (offset >= 0) {
+	if (offset != std::numeric_limits<size_t>::max())
+	{
 		if (*pkt_ptr ==nullptr)
 			*pkt_ptr = btbb_packet_new();
 		init_packet(*pkt_ptr, lap, ac_errors);
@@ -502,7 +506,7 @@ bool btbb_packet_get_flag(const btbb_packet *pkt, const uint8_t flag)
 	return ((pkt->flags & mask) != 0);
 }
 
-uint8_t * const btbb_get_symbols(const btbb_packet * const pkt)
+uint8_t * btbb_get_symbols(const btbb_packet * const pkt)
 {
 	return (uint8_t * const) pkt->symbols;
 }
@@ -512,9 +516,9 @@ uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt)
 	return pkt->payload_length;
 }
 
-uint8_t * const btbb_get_payload(const btbb_packet * const pkt)
+uint8_t * btbb_get_payload(const btbb_packet * const pkt)
 {
-	return (uint8_t * const) pkt->payload;
+	return (uint8_t *) pkt->payload;
 }
 
 uint16_t btbb_get_payload_packed(const btbb_packet* pkt, uint8_t * const dst)
@@ -606,7 +610,7 @@ static uint16_t fec23(uint16_t data)
 }
 
 /* Decode 2/3 rate FEC, a (15,10) shortened Hamming code */
-static uint8_t * const unfec23(const uint8_t * const input, uint16_t length_bits)
+static uint8_t * unfec23(const uint8_t * const input, uint16_t length_bits)
 {
 	/* input points to the input data
 	 * length_bits is length_bits in bits of the data
@@ -616,7 +620,7 @@ static uint8_t * const unfec23(const uint8_t * const input, uint16_t length_bits
 	// padding at end of data
 	if(diff > 0) length_bits += (10 - diff);
 
-    auto* const output = new uint8_t(length_bits);
+    auto* const output = new uint8_t[length_bits];
 
 	for (uint16_t iptr = 0, optr = 0; optr<length_bits; iptr += 15, optr += 10) {
 		// copy data to output
@@ -709,7 +713,7 @@ static uint16_t crcgen(const uint8_t * const payload, const uint16_t length, con
 /* extract UAP by reversing the HEC computation */
 static uint8_t uap_from_hec(uint16_t data, uint8_t hec)
 {
-        for (uint8_t i = 9; i >= 0; i--) {
+        for (int8_t i = 9; i >= 0; i--) {
                 /* 0x65 is xor'd if MSB is 1, else 0x00 (which does nothing) */
                 if (hec & 0x80) hec ^= 0x65;
 
@@ -1359,11 +1363,11 @@ void btbb_print_packet(const btbb_packet* pkt)
 	}
 }
 
-uint8_t * const tun_format(btbb_packet* pkt)
+uint8_t * tun_format(btbb_packet* pkt)
 {
 	/* include 6 bytes for meta data, 3 bytes for packet header */
 	const uint16_t length = uint8_t(9) + pkt->payload_length;
-	auto * const tun_format = new uint8_t(length);
+	auto * const tun_format = new uint8_t[length];
 
 	/* meta data */
 	tun_format[0] = static_cast<uint8_t>(pkt->clkn & 0xff);

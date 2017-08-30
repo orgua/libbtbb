@@ -536,9 +536,9 @@ print128:
 
 void lell_print(const lell_packet *pkt)
 {
-	int i, opcode;
+	uint8_t opcode;
 	if (lell_packet_is_data(pkt)) {
-		int llid = pkt->symbols[4] & 0x3;
+		const auto llid = static_cast<uint8_t>(pkt->symbols[4] & 0x3);
 		static const char *llid_str[] = {
 			"Reserved",
 			"LL Data PDU / empty or L2CAP continuation",
@@ -599,7 +599,7 @@ void lell_print(const lell_packet *pkt)
 				_dump_addr("AdvA:  ", pkt->symbols, 6, pkt->adv_tx_add);
 				if (pkt->length > 6) {
 					printf("    AdvData:");
-					for (i = 0; i + 6 < pkt->length ; ++i)
+					for (uint32_t i = 0; i + 6 < pkt->length ; ++i)
 						printf(" %02x", pkt->symbols[12+i]);
 					printf("\n");
 					_dump_scan_rsp_data(&pkt->symbols[12], pkt->length-6);
@@ -616,7 +616,7 @@ void lell_print(const lell_packet *pkt)
 			case SCAN_RSP:
 				_dump_addr("AdvA:  ", pkt->symbols, 6, pkt->adv_tx_add);
 				printf("    ScanRspData:");
-				for (i = 0; i + 6 < pkt->length; ++i)
+				for (uint32_t i = 0; i + 6 < pkt->length; ++i)
 					printf(" %02x", pkt->symbols[12+i]);
 				printf("\n");
 				_dump_scan_rsp_data(&pkt->symbols[12], pkt->length-6);
@@ -633,7 +633,7 @@ void lell_print(const lell_packet *pkt)
 				_dump_16("Timeout: ", pkt->symbols, 32);
 
 				printf("    ChM:");
-				for (i = 0; i < 5; ++i)
+				for (uint8_t i = 0; i < 5; ++i)
 					printf(" %02x", pkt->symbols[34+i]);
 				printf("\n");
 
@@ -649,10 +649,10 @@ void lell_print(const lell_packet *pkt)
 
 	printf("\n");
 	printf("    Data: ");
-	for (i = 6; i < 6 + pkt->length; ++i) printf(" %02x", pkt->symbols[i]);
+	for (uint32_t i = 6; i < (6 + pkt->length); ++i) printf(" %02x", pkt->symbols[i]);
 	printf("\n");
 
 	printf("    CRC:  ");
-	for (i = 0; i < 3; ++i) printf(" %02x", pkt->symbols[6 + pkt->length + i]);
+	for (uint8_t i = 0; i < 3; ++i) printf(" %02x", pkt->symbols[6 + pkt->length + i]);
 	printf("\n");
 }
