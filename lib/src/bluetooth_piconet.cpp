@@ -367,7 +367,7 @@ void gen_hop_pattern(btbb_piconet *pn)
 {
 	printf("\nCalculating complete hopping sequence.\n");
 	/* this holds the entire hopping sequence */
-	pn->sequence = (char*) malloc(SEQUENCE_LENGTH);
+	pn->sequence = new uint8_t(SEQUENCE_LENGTH);
 
 	precalc(pn);
 	address_precalc(((pn->UAP<<24) | pn->LAP) & 0xfffffff, pn);
@@ -379,11 +379,11 @@ void gen_hop_pattern(btbb_piconet *pn)
 /* Container for hopping pattern */
 typedef struct {
     uint64_t key; /* afh flag + address */
-    char *sequence;
+    uint8_t *sequence;
     UT_hash_handle hh;
 } hopping_struct;
 
-static hopping_struct *hopping_map = NULL;
+static hopping_struct *hopping_map = nullptr;
 
 /* Function to fetch piconet hopping patterns */
 void get_hop_pattern(btbb_piconet *pn)
@@ -396,7 +396,7 @@ void get_hop_pattern(btbb_piconet *pn)
 	key = (key<<39) | ((uint64_t)pn->used_channels<<32) | ((uint32_t)pn->UAP<<24) | pn->LAP;
 	HASH_FIND(hh, hopping_map, &key, 4, s);
 
-	if (s == NULL) {
+	if (s == nullptr) {
 		gen_hop_pattern(pn);
 		s = new hopping_struct;
 		s->key = key;
@@ -447,9 +447,9 @@ char hop(int clock, btbb_piconet *pn)
 	return pn->sequence[clock];
 }
 
-static char aliased_channel(char channel)
+static uint8_t aliased_channel(const uint8_t channel)
 {
-	return ((channel + 24) % ALIASED_CHANNELS) + 26;
+	return ((channel + uint8_t(24)) % ALIASED_CHANNELS) + uint8_t(26);
 }
 
 /* create list of initial candidate clock values (hops with same channel as first observed hop) */
@@ -551,7 +551,7 @@ static void reset(btbb_piconet *pn)
 
 	if(btbb_piconet_get_flag(pn, BTBB_HOP_REVERSAL_INIT)) {
 		free(pn->clock_candidates);
-		pn->sequence = NULL;
+		pn->sequence = nullptr;
 	}
 	btbb_piconet_set_flag(pn, BTBB_GOT_FIRST_PACKET, 0);
 	btbb_piconet_set_flag(pn, BTBB_HOP_REVERSAL_INIT, 0);
@@ -573,7 +573,7 @@ static void reset(btbb_piconet *pn)
 }
 
 /* narrow a list of candidate clock values based on a single observed hop */
-static int channel_winnow(int offset, char channel, btbb_piconet *pn)
+static int channel_winnow(int offset, const uint8_t channel, btbb_piconet *pn)
 {
 	int i;
 	int new_count = 0; /* number of candidates after winnowing */
@@ -821,7 +821,7 @@ btbb_piconet *get_piconet(uint32_t lap)
 	btbb_piconet *pn;
 	HASH_FIND(hh, piconet_survey, &lap, 4, s);
 
-	if (s == NULL) {
+	if (s == nullptr) {
 		pn = btbb_piconet_new();
 		btbb_init_piconet(pn, lap);
 

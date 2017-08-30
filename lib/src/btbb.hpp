@@ -60,7 +60,7 @@ extern "C"
 
 /* BT BR/EDR support */
 
-typedef struct btbb_packet btbb_packet;
+using btbb_packet = struct btbb_packet;
 
 /* Initialize the library. Compute the syndrome. Return 0 on success,
  * negative on error.
@@ -235,10 +235,10 @@ lell_packet * lell_packet_new();
 void lell_packet_ref(lell_packet *pkt);
 void lell_packet_unref(lell_packet *pkt);
 uint32_t lell_get_access_address(const lell_packet *pkt);
-unsigned lell_get_access_address_offenses(const lell_packet *pkt);
-unsigned lell_packet_is_data(const lell_packet *pkt);
-unsigned lell_get_channel_index(const lell_packet *pkt);
-unsigned lell_get_channel_k(const lell_packet *pkt);
+uint32_t lell_get_access_address_offenses(const lell_packet *pkt);
+bool lell_packet_is_data(const lell_packet *pkt);
+uint8_t lell_get_channel_index(const lell_packet *pkt);
+uint8_t lell_get_channel_k(const lell_packet *pkt);
 const char * lell_get_adv_type_str(const lell_packet *pkt);
 void lell_print(const lell_packet *pkt);
 

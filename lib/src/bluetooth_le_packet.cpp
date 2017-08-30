@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2007 - 2012 Mike Ryan, Dominic Spill, Michael Ossmann
  * Copyright 2005, 2006 Free Software Foundation, Inc.
@@ -243,7 +243,7 @@ static uint32_t aa_data_channel_offenses(const uint32_t aa)
 
 lell_packet * lell_packet_new()
 {
-	lell_packet * const pkt = (lell_packet *)calloc(1, sizeof(lell_packet));
+	auto pkt = (lell_packet * const)calloc(1, sizeof(lell_packet));
 	pkt->refcount = 1;
 	return pkt;
 }
@@ -282,7 +282,7 @@ void lell_allocate_and_decode(const uint8_t *stream, uint16_t phys_channel, uint
 	memcpy((*pkt)->symbols, stream, MAX_LE_SYMBOLS);
 
 	(*pkt)->channel_idx = le_channel_index(phys_channel);
-	(*pkt)->channel_k = (phys_channel-2402)/2;
+	(*pkt)->channel_k = static_cast<uint8_t>((phys_channel-2402)/2);
 	(*pkt)->clk100ns = clk100ns;
 
 	(*pkt)->access_address = 0;
@@ -302,15 +302,15 @@ void lell_allocate_and_decode(const uint8_t *stream, uint16_t phys_channel, uint
 		(*pkt)->adv_type = (*pkt)->symbols[4] & uint8_t(0xf);
 		(*pkt)->adv_tx_add = (*pkt)->symbols[4] & 0x40 ? 1 : 0;
 		(*pkt)->adv_rx_add = (*pkt)->symbols[4] & 0x80 ? 1 : 0;
-		(*pkt)->flags.as_bits.access_address_ok = ((*pkt)->access_address == 0x8e89bed6);
+		(*pkt)->flags.as_bits.access_address_ok = ((*pkt)->access_address == 0x8e89bed6ul) ? 1 : 0;
 		(*pkt)->access_address_offenses = (*pkt)->flags.as_bits.access_address_ok ? 0 :
 			(aa_access_channel_off_by_one((*pkt)->access_address) ? 1 : 32);
 	}
 }
 
-unsigned lell_packet_is_data(const lell_packet *pkt)
+bool lell_packet_is_data(const lell_packet *pkt)
 {
-	return (unsigned) (pkt->channel_idx < 37);
+	return (pkt->channel_idx < 37);
 }
 
 uint32_t lell_get_access_address(const lell_packet *pkt)
@@ -318,17 +318,17 @@ uint32_t lell_get_access_address(const lell_packet *pkt)
 	return pkt->access_address;
 }
 
-unsigned lell_get_access_address_offenses(const lell_packet *pkt)
+uint32_t lell_get_access_address_offenses(const lell_packet *pkt)
 {
 	return pkt->access_address_offenses;
 }
 
-unsigned lell_get_channel_index(const lell_packet *pkt)
+uint8_t lell_get_channel_index(const lell_packet *pkt)
 {
 	return pkt->channel_idx;
 }
 
-unsigned lell_get_channel_k(const lell_packet *pkt)
+uint8_t lell_get_channel_k(const lell_packet *pkt)
 {
 	return pkt->channel_k;
 }
@@ -336,7 +336,7 @@ unsigned lell_get_channel_k(const lell_packet *pkt)
 const char * lell_get_adv_type_str(const lell_packet *pkt)
 {
 	if (lell_packet_is_data(pkt))
-		return NULL;
+		return nullptr;
 	if (pkt->adv_type < COUNT_OF(ADV_TYPE_NAMES))
 		return ADV_TYPE_NAMES[pkt->adv_type];
 	return "UNKNOWN";
@@ -427,14 +427,14 @@ static void _dump_scan_rsp_data(const uint8_t *buf, int len) {
 				printf("\n");
 				break;
 			case 0x02:
-				printf(" (16-bit Service UUIDs, more available)\n");
+				printf(" (16-bit Service UUIDs, more available)\n"); // TODO: avoid gotos with if
 				goto print16;
 			case 0x03:
 				printf(" (16-bit Service UUIDs) \n");
 print16:
 				if ((sublen - 1) % 2 == 0) {
 					for (i = 0; i < sublen - 1; i += 2) {
-						uint16_t *uuid = (uint16_t *)&buf[pos+1+i];
+						uint16_t *uuid = reinterpret_cast<uint16_t *>(&buf[pos+1+i]);
 						printf("           %04x\n", *uuid);
 					}
 				}
@@ -642,6 +642,8 @@ void lell_print(const lell_packet *pkt)
 						pkt->symbols[39] >> 5,
 						CONNECT_SCA[pkt->symbols[39] >> 5]);
 				break;
+            default:
+                break;
 		}
 	}
 

@@ -29,7 +29,7 @@
 
 constexpr uint8_t 	MAX_LE_SYMBOLS 	= 64;
 
-constexpr uint32_t 	LE_ADV_AA 		= 0x8E89BED6ul;
+constexpr uint32_t 	LE_ADV_AA 		= uint32_t(0x8E89BED6);
 
 constexpr uint8_t 	ADV_IND			= 0;
 constexpr uint8_t 	ADV_DIRECT_IND	= 1;

@@ -74,11 +74,11 @@ struct btbb_packet {
 	uint8_t packet_hec; /* Flags - FLOW/ARQN/SQEN */
 
 	/* packet header, one bit per char */
-	char packet_header[18];
+	uint8_t packet_header[18];
 
 	/* number of payload header bytes: 0, 1, 2. payload is one bit per char. */
-	uint32_t payload_header_length; // TODO: should be unsigned
-	char payload_header[16];
+	uint32_t payload_header_length;
+	uint8_t  payload_header[16];
 
 	/* LLID field of payload header (2 bits) */
 	uint8_t payload_llid;
@@ -93,7 +93,7 @@ struct btbb_packet {
 	* (the length indicated in the payload header's length field)
 	* plus payload_header_length plus 2 bytes CRC (if present).
 	*/
-	uint32_t payload_length;
+	uint16_t payload_length;
 
 	/* The actual payload data in host format
 	* Ready for passing to wireshark
@@ -101,7 +101,7 @@ struct btbb_packet {
 	* Dynamic allocation would probably be better in the long run but is
 	* problematic in the short run.
 	*/
-	char payload[MAX_PAYLOAD_LENGTH];
+	uint8_t payload[MAX_PAYLOAD_LENGTH];
 
 	uint16_t crc;
 	uint32_t clkn;     /* CLK1-27 of the packet */
@@ -112,8 +112,7 @@ struct btbb_packet {
 	//to the size needed and later shrink it if we find we have
 	//more symbols than necessary
 	uint16_t length; /* number of symbols */
-	char symbols[MAX_SYMBOLS];
-
+	uint8_t symbols[MAX_SYMBOLS];
 };
 
 /* type-specific CRC checks and decoding */

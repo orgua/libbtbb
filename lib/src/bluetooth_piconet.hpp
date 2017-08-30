@@ -36,7 +36,7 @@ struct btbb_piconet {
 	uint32_t flags;
 
 	/* true if using a particular aliased receiver implementation */
-	int aliased;
+	bool aliased;
 
 	/* AFH channel map - either read or derived from observed packets */
 	uint8_t afh_map[10];
@@ -57,17 +57,18 @@ struct btbb_piconet {
 	uint32_t *clock_candidates;
 
 	/* these values for hop() can be precalculated */
-	int b, e;
+	uint8_t b, e;
 
 	/* these values for hop() can be precalculated in part (e.g. a1 is the
 	 * precalculated part of a) */
-	int a1, c1, d1;
+	uint8_t a1, c1;
+	uint16_t d1;
 
 	/* frequency register bank */
 	int bank[BT_NUM_CHANNELS];
 
 	/* this holds the entire hopping sequence */
-	char *sequence;
+	uint8_t *sequence;
 
 	/* number of candidates for CLK1-27 */
 	int num_candidates;
