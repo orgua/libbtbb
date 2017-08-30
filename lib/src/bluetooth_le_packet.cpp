@@ -434,7 +434,7 @@ static void _dump_scan_rsp_data(const uint8_t *buf, int len) {
 print16:
 				if ((sublen - 1) % 2 == 0) {
 					for (i = 0; i < sublen - 1; i += 2) {
-						uint16_t *uuid = reinterpret_cast<uint16_t *>(&buf[pos+1+i]);
+						const uint16_t *uuid = reinterpret_cast<const uint16_t *>(&buf[pos+1+i]);
 						printf("           %04x\n", *uuid);
 					}
 				}

@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2014 Christopher D. Kilgour techie AT whiterocker.com
  *
@@ -73,7 +73,7 @@ check_and_fix_tsresol( PCAPNG_HANDLE * handle,
 			got_tsresol = 1;
 		}
 		else {
-			size_t step = 4+4*((interface_options->option_length+3)/4);
+			size_t step = static_cast<size_t>(4+4*((interface_options->option_length+3)/4));
 			uint8_t * next = &((uint8_t *)interface_options)[step];
 			interface_options = (const option_header *) next;
 		}
@@ -136,7 +136,7 @@ int btbb_pcapng_create_file( const char *filename,
 	int retval = PCAPNG_OK;
 	PCAPNG_HANDLE * handle = new PCAPNG_HANDLE; // TODO: forbid all "new"
 	if (handle) {
-		const option_header * popt = NULL;
+		const option_header * popt = nullptr;
 		struct {
 			option_header header;
 			char desc[256];
@@ -193,7 +193,7 @@ assemble_pcapng_bredr_packet( pcapng_bredr_packet * pkt,
                               const uint8_t ref_uap,
 			      const uint32_t bt_header,
 			      const uint16_t flags,
-			      const char * payload )
+			      const uint8_t * payload )
 {
 	uint32_t pcapng_caplen = sizeof(pcap_bluetooth_bredr_bb_header)  
 				 - sizeof(pkt->bredr_bb_header.bredr_payload)  
@@ -238,11 +238,11 @@ int btbb_pcapng_append_packet(btbb_pcapng_handle * h, const uint64_t ns,
 			      const btbb_packet *pkt)
 {
 	uint16_t flags = BREDR_DEWHITENED | BREDR_SIGPOWER_VALID |
-		((noisedbm < sigdbm) ? BREDR_NOISEPOWER_VALID : 0) |
-		((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : 0) |
-		((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : 0);
+		((noisedbm < sigdbm) ? BREDR_NOISEPOWER_VALID : uint8_t(0)) |
+		((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : uint8_t(0)) |
+		((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : uint8_t(0));
 	uint32_t caplen = btbb_packet_get_payload_length(pkt);
-	char payload_bytes[caplen];
+	uint8_t payload_bytes[caplen];
 	btbb_get_payload_packed( pkt, &payload_bytes[0] );
 	caplen = min(static_cast<uint32_t>(BREDR_MAX_PAYLOAD), caplen);
 	pcapng_bredr_packet pcapng_pkt;
@@ -280,12 +280,12 @@ record_bd_addr_info( PCAPNG_HANDLE * handle,
 		},
 		.bd_addr_info = {
 			.bd_addr = {
-				((bd_addr>>0)  & 0xff),
-				((bd_addr>>8)  & 0xff),
-				((bd_addr>>16) & 0xff),
-				((bd_addr>>24) & 0xff),
-				((bd_addr>>32) & 0xff),
-				((bd_addr>>40) & 0xff)
+					static_cast<uint8_t>((bd_addr>>0)  & 0xff),
+					static_cast<uint8_t>((bd_addr>>8)  & 0xff),
+					static_cast<uint8_t>((bd_addr>>16) & 0xff),
+					static_cast<uint8_t>((bd_addr>>24) & 0xff),
+					static_cast<uint8_t>((bd_addr>>32) & 0xff),
+					static_cast<uint8_t>((bd_addr>>40) & 0xff)
 			},
 			.uap_mask = uap_mask,
 			.nap_valid = nap_valid,
@@ -467,8 +467,8 @@ lell_pcapng_append_packet(lell_pcapng_handle * h, const uint64_t ns,
 {
 	uint16_t flags = LE_DEWHITENED | LE_AA_OFFENSES_VALID |
 		LE_SIGPOWER_VALID |
-		((noisedbm < sigdbm) ? LE_NOISEPOWER_VALID : 0) |
-		(lell_packet_is_data(pkt) ? 0 : LE_REF_AA_VALID);
+		((noisedbm < sigdbm) ? LE_NOISEPOWER_VALID : uint8_t(0)) |
+		(lell_packet_is_data(pkt) ? uint8_t(0) : LE_REF_AA_VALID);
 	pcapng_le_packet pcapng_pkt;
 
 	/* The extra 9 bytes added to the packet length are for:

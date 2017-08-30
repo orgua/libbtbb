@@ -4,7 +4,7 @@
 
 lap = 0xffffff
 
-pn = 0x83848D96BBCC54FC
+PN = 0x83848D96BBCC54FC
 
 # generator matrix for (64,30) linear block code
 # based on polynomial 0260534236651
@@ -56,12 +56,12 @@ else:
 	data = 0x2c000000 | lap
 
 # scramble
-data ^= (pn >> 34)
+data ^= (PN >> 34)
 
 # encode
 codeword = encode(data)
 
 # scramble again
-syncword = codeword ^ pn
+syncword = codeword ^ PN
 
 print "0x%06x 0x%016x 0x%016x" % (lap, codeword, syncword)

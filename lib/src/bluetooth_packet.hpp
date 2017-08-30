@@ -22,12 +22,14 @@
 #ifndef INCLUDED_BLUETOOTH_PACKET_H
 #define INCLUDED_BLUETOOTH_PACKET_H
 #include "btbb.hpp"
+#include <limits>
 
 /* maximum number of symbols */
-constexpr uint16_t 	MAX_SYMBOLS 	= 3125;
+constexpr uint16_t 	MAX_SYMBOLS 	= 3125; // TODO: also assert?
 
 /* maximum number of payload bits */
 constexpr uint16_t 	MAX_PAYLOAD_LENGTH = 2744;
+static_assert(MAX_PAYLOAD_LENGTH * 8 <= std::numeric_limits<uint16_t>::max());
 
 /* minimum header bit errors to indicate that this is an ID packet */
 constexpr uint8_t 	ID_THRESHOLD 	= 5;
@@ -116,24 +118,24 @@ struct btbb_packet {
 };
 
 /* type-specific CRC checks and decoding */
-int fhs(int clock, btbb_packet* p);
-int DM(int clock, btbb_packet* p);
-int DH(int clock, btbb_packet* p);
-int EV3(int clock, btbb_packet* p);
-int EV4(int clock, btbb_packet* p);
-int EV5(int clock, btbb_packet* p);
-int HV(int clock, btbb_packet* p);
+uint16_t fhs(uint32_t clock, btbb_packet* p);
+uint16_t DM(uint32_t clock, btbb_packet* p);
+uint16_t DH(uint32_t clock, btbb_packet* p);
+uint16_t EV3(uint32_t clock, btbb_packet* p);
+uint16_t EV4(uint32_t clock, btbb_packet* p);
+uint16_t EV5(uint32_t clock, btbb_packet* p);
+uint16_t HV(uint32_t clock, btbb_packet* p);
 
 /* check if the packet's CRC is correct for a given clock (CLK1-6) */
-int crc_check(int clock, btbb_packet* p);
+uint16_t crc_check(uint32_t clock, btbb_packet* p);
 
 /* format payload for tun interface */
-char *tun_format(btbb_packet* p);
+uint8_t * const tun_format(btbb_packet* p);
 
 /* try a clock value (CLK1-6) to unwhiten packet header,
  * sets resultant d_packet_type and d_UAP, returns UAP.
  */
-uint8_t try_clock(int clock, btbb_packet* p);
+uint8_t try_clock(uint32_t clock, btbb_packet * p);
 
 /* extract LAP from FHS payload */
 uint32_t lap_from_fhs(btbb_packet* p);

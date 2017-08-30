@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2014 Christopher D. Kilgour techie AT whiterocker.com
  *
@@ -178,11 +178,11 @@ typedef enum {
 PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 			     const char * filename,
 			     const option_header * section_options,
-			     const size_t section_options_space,
-			     const uint16_t link_type,
-			     const uint32_t snaplen,
+			     size_t section_options_space,
+			     uint16_t link_type,
+			     uint32_t snaplen,
 			     const option_header * interface_options,
-			     const size_t interface_options_space );
+			     size_t interface_options_space );
 
 PCAPNG_RESULT pcapng_append_section_option( PCAPNG_HANDLE * handle,
 					    const option_header * section_option );

@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2007 - 2013 Dominic Spill, Michael Ossmann, Will Code
  *
@@ -87,13 +87,10 @@ void btbb_packet_unref(btbb_packet *pkt);
  * packet was found, returns a negative number. If LAP_ANY was
  * specified, fills lap. 'ac_errors' must be set as an input, replaced
  * by actual number of errors on output. */
-int32_t btbb_find_ac(char *stream,
-		int32_t search_length,
-	       uint32_t lap,
-		int32_t max_ac_errors,
+int32_t btbb_find_ac(char *stream, int32_t search_length, uint32_t lap, int32_t max_ac_errors,
 	       btbb_packet **pkt);
 
-constexpr uint32_t 	LAP_ANY = 0xfffffffful;
+constexpr uint32_t 	LAP_ANY = uint32_t(0xffffffff);
 constexpr uint8_t 	UAP_ANY = 0xff;
 
 void btbb_packet_set_flag(btbb_packet *pkt, int32_t flag, int32_t val);
@@ -115,21 +112,21 @@ uint32_t btbb_packet_get_clkn(const btbb_packet *pkt);
 uint32_t btbb_packet_get_header_packed(const btbb_packet* pkt);
 
 void btbb_packet_set_data(btbb_packet *pkt,
-		char *syms,      // Symbol data
+		uint8_t *syms,      // Symbol data
 		int32_t length,      // Number of symbols
 		uint8_t channel, // Bluetooth channel 0-79
 		uint32_t clkn);  // 312.5us clock (CLK27-0)
 
 /* Get a pointer to packet symbols. */
-const char *btbb_get_symbols(const btbb_packet* pkt);
+uint8_t * const btbb_get_symbols(const btbb_packet * pkt);
 
 uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt);
 
 /* Get a pointer to payload. */
-const char *btbb_get_payload(const btbb_packet* pkt);
+uint8_t * const btbb_get_payload(const btbb_packet* pkt);
 
 /* Pack the payload in to bytes */
-uint32_t btbb_get_payload_packed(const btbb_packet* pkt, char *dst);
+uint16_t btbb_get_payload_packed(const btbb_packet* pkt, uint8_t *dst);
 
 uint8_t btbb_packet_get_type(const btbb_packet* pkt);
 uint8_t btbb_packet_get_lt_addr(const btbb_packet* pkt);
@@ -137,19 +134,19 @@ uint8_t btbb_packet_get_header_flags(const btbb_packet* pkt);
 uint8_t btbb_packet_get_hec(const btbb_packet *pkt);
 
 /* Generate Sync Word from an LAP */
-uint64_t btbb_gen_syncword(const int LAP);
+uint64_t btbb_gen_syncword(int LAP);
 
 /* decode the packet header */
 int32_t btbb_decode_header(btbb_packet* pkt);
 
 /* decode the packet header */
-int32_t btbb_decode_payload(btbb_packet* pkt);
+uint16_t btbb_decode_payload(btbb_packet* pkt);
 
 /* print packet information */
 void btbb_print_packet(const btbb_packet* pkt);
 
 /* check to see if the packet has a header */
-int32_t btbb_header_present(const btbb_packet* pkt);
+bool btbb_header_present(const btbb_packet* pkt);
 
 /* Packet queue (linked list) */
 typedef struct pkt_queue {
@@ -161,7 +158,7 @@ typedef struct pkt_queue {
 
 typedef struct btbb_piconet btbb_piconet;
 
-btbb_piconet *btbb_piconet_new(void);
+btbb_piconet *btbb_piconet_new();
 void btbb_piconet_ref(btbb_piconet *pn);
 void btbb_piconet_unref(btbb_piconet *pn);
 
@@ -174,20 +171,20 @@ uint32_t btbb_piconet_get_lap(const btbb_piconet *pn);
 uint16_t btbb_piconet_get_nap(const btbb_piconet *pn);
 uint64_t btbb_piconet_get_bdaddr(const btbb_piconet *pn);
 
-int32_t btbb_piconet_get_clk_offset(const btbb_piconet *pn);
+uint32_t btbb_piconet_get_clk_offset(const btbb_piconet *pn);
 void btbb_piconet_set_clk_offset(btbb_piconet *pn, int32_t clk_offset);
 
-void btbb_piconet_set_flag(btbb_piconet *pn, int32_t flag, int32_t val);
-int32_t btbb_piconet_get_flag(const btbb_piconet *pn, int32_t flag);
+void btbb_piconet_set_flag(btbb_piconet *pn, uint8_t flag, bool val);
+bool btbb_piconet_get_flag(const btbb_piconet *pn, uint8_t flag);
 
-uint8_t btbb_piconet_set_channel_seen(btbb_piconet *pn, uint8_t channel);
-uint8_t btbb_piconet_clear_channel_seen(btbb_piconet *pn, uint8_t channel);
-uint8_t btbb_piconet_get_channel_seen(btbb_piconet *pn, uint8_t channel);
+bool btbb_piconet_set_channel_seen(btbb_piconet *pn, uint8_t channel);
+bool btbb_piconet_clear_channel_seen(btbb_piconet *pn, uint8_t channel);
+bool btbb_piconet_get_channel_seen(btbb_piconet *pn, uint8_t channel);
 void btbb_piconet_set_afh_map(btbb_piconet *pn, uint8_t *afh_map);
-uint8_t *btbb_piconet_get_afh_map(btbb_piconet *pn);
+uint8_t * const btbb_piconet_get_afh_map(btbb_piconet *pn);
 
 /* Extract as much information (LAP/UAP/CLK) as possible from received packet */
-int32_t btbb_process_packet(btbb_packet *pkt, btbb_piconet *pn);
+bool btbb_process_packet(btbb_packet *pkt, btbb_piconet *pn);
 
 /* use packet headers to determine UAP */
 int32_t btbb_uap_from_header(btbb_packet *pkt, btbb_piconet *pn);
@@ -196,17 +193,17 @@ int32_t btbb_uap_from_header(btbb_packet *pkt, btbb_piconet *pn);
 void btbb_print_afh_map(btbb_piconet *pn);
 
 /* decode a whole packet from the given piconet */
-int btbb_decode(btbb_packet* pkt);
+uint16_t btbb_decode(btbb_packet* pkt);
 
 
 /* initialize the hop reversal process */
 /* returns number of initial candidates for CLK1-27 */
-int btbb_init_hop_reversal(int aliased, btbb_piconet *pn);
+uint32_t btbb_init_hop_reversal(bool aliased, btbb_piconet *pn);
 
 /* narrow a list of candidate clock values based on all observed hops */
-int btbb_winnow(btbb_piconet *pn);
+uint32_t btbb_winnow(btbb_piconet *pn);
 
-int btbb_init_survey(void);
+bool btbb_init_survey(void);
 /* Destructively iterate over survey results - optionally remove elements */
 btbb_piconet *btbb_next_survey_result(void);
 
@@ -214,16 +211,16 @@ typedef struct btbb_pcapng_handle btbb_pcapng_handle;
 /* create a PCAPNG file for BREDR captures */
 int btbb_pcapng_create_file(const char *filename, const char *interface_desc, btbb_pcapng_handle ** ph);
 /* save a BREDR packet to PCAPNG capture file */
-int btbb_pcapng_append_packet(btbb_pcapng_handle * h, const uint64_t ns,
-                              const int8_t sigdbm, const int8_t noisedbm,
-                              const uint32_t reflap, const uint8_t refuap,
+int btbb_pcapng_append_packet(btbb_pcapng_handle * h, uint64_t ns,
+                              int8_t sigdbm, int8_t noisedbm,
+                              uint32_t reflap, uint8_t refuap,
                               const btbb_packet *pkt);
 /* record a BDADDR to PCAPNG capture file */
-int btbb_pcapng_record_bdaddr(btbb_pcapng_handle * h, const uint64_t bdaddr,
-                              const uint8_t uapmask, const uint8_t napvalid);
+int btbb_pcapng_record_bdaddr(btbb_pcapng_handle * h, uint64_t bdaddr,
+                              uint8_t uapmask, uint8_t napvalid);
 /* record BT CLOCK to PCAPNG capture file */
-int btbb_pcapng_record_btclock(btbb_pcapng_handle * h, const uint64_t bdaddr,
-                               const uint64_t ns, const uint32_t clk, const uint32_t clkmask);
+int btbb_pcapng_record_btclock(btbb_pcapng_handle * h, uint64_t bdaddr,
+                               uint64_t ns, uint32_t clk, uint32_t clkmask);
 int btbb_pcapng_close(btbb_pcapng_handle * h);
 
 
@@ -239,18 +236,18 @@ uint32_t lell_get_access_address_offenses(const lell_packet *pkt);
 bool lell_packet_is_data(const lell_packet *pkt);
 uint8_t lell_get_channel_index(const lell_packet *pkt);
 uint8_t lell_get_channel_k(const lell_packet *pkt);
-const char * lell_get_adv_type_str(const lell_packet *pkt);
+const char * lell_get_adv_type_str(const lell_packet *pkt); // TODO: convert to string?
 void lell_print(const lell_packet *pkt);
 
 typedef struct lell_pcapng_handle lell_pcapng_handle;
 /* create a PCAPNG file for LE captures */
 int lell_pcapng_create_file(const char *filename, const char *interface_desc, lell_pcapng_handle ** ph);
 /* save an LE packet to PCAPNG capture file */
-int lell_pcapng_append_packet(lell_pcapng_handle * h, const uint64_t ns,
-                              const int8_t sigdbm, const int8_t noisedbm,
-                              const uint32_t refAA, const lell_packet *pkt);
+int lell_pcapng_append_packet(lell_pcapng_handle * h, uint64_t ns,
+                              int8_t sigdbm, int8_t noisedbm,
+                              uint32_t refAA, const lell_packet *pkt);
 /* record LE CONNECT_REQ parameters to PCAPNG capture file */
-int lell_pcapng_record_connect_req(lell_pcapng_handle * h, const uint64_t ns, const uint8_t * pdu);
+int lell_pcapng_record_connect_req(lell_pcapng_handle * h, uint64_t ns, const uint8_t * pdu);
 int lell_pcapng_close(lell_pcapng_handle *h);
 
 
@@ -259,9 +256,9 @@ typedef struct btbb_pcap_handle btbb_pcap_handle;
 /* create a PCAP file for BREDR captures with LINKTYPE_BLUETOOTH_BREDR_BB */
 int btbb_pcap_create_file(const char *filename, btbb_pcap_handle ** ph);
 /* write a BREDR packet to PCAP file */
-int btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns,
-                            const int8_t sigdbm, const int8_t noisedbm,
-                            const uint32_t reflap, const uint8_t refuap,
+int btbb_pcap_append_packet(btbb_pcap_handle * h, uint64_t ns,
+                            int8_t sigdbm, int8_t noisedbm,
+                            uint32_t reflap, uint8_t refuap,
                             const btbb_packet *pkt);
 int btbb_pcap_close(btbb_pcap_handle * h);
 
@@ -271,13 +268,13 @@ int lell_pcap_create_file(const char *filename, lell_pcap_handle ** ph);
 /* create a PCAP file for LE captures using LINKTYPE_PPI */
 int lell_pcap_ppi_create_file(const char *filename, int btle_ppi_version, lell_pcap_handle ** ph);
 /* save an LE packet to PCAP capture file */
-int lell_pcap_append_packet(lell_pcap_handle * h, const uint64_t ns,
-                            const int8_t sigdbm, const int8_t noisedbm,
-                            const uint32_t refAA, const lell_packet *pkt);
-int lell_pcap_append_ppi_packet(lell_pcap_handle * h, const uint64_t ns,
-                                const uint8_t clkn_high,
-                                const int8_t rssi_min, const int8_t rssi_max,
-                                const int8_t rssi_avg, const uint8_t rssi_count,
+int lell_pcap_append_packet(lell_pcap_handle * h, uint64_t ns,
+                            int8_t sigdbm, int8_t noisedbm,
+                            uint32_t refAA, const lell_packet *pkt);
+int lell_pcap_append_ppi_packet(lell_pcap_handle * h, uint64_t ns,
+                                uint8_t clkn_high,
+                                int8_t rssi_min, int8_t rssi_max,
+                                int8_t rssi_avg, uint8_t rssi_count,
                                 const lell_packet *pkt);
 int lell_pcap_close(lell_pcap_handle *h);
 

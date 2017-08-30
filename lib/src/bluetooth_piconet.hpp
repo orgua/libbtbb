@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2007 - 2013 Dominic Spill, Michael Ossmann, Will Code
  *
@@ -65,32 +65,32 @@ struct btbb_piconet {
 	uint16_t d1;
 
 	/* frequency register bank */
-	int bank[BT_NUM_CHANNELS];
+	uint8_t bank[BT_NUM_CHANNELS];
 
 	/* this holds the entire hopping sequence */
 	uint8_t *sequence;
 
 	/* number of candidates for CLK1-27 */
-	int num_candidates;
+	uint32_t num_candidates;
 
 	/* number of packets observed during one attempt at UAP/clock discovery */
-	int packets_observed;
+	uint32_t packets_observed; // TODO: clean up types
 
 	/* total number of packets observed */
-	int total_packets_observed;
+	uint32_t total_packets_observed;
 
 	/* number of observed packets that have been used to winnow the candidates */
-	int winnowed;
+	uint32_t winnowed;
 
 	/* CLK1-6 candidates */
-	int clock6_candidates[64];
+	int clock6_candidates[64]; // TODO: can be -1 and UAP mostly
 
 	/* remember patterns of observed hops */
-	int pattern_indices[MAX_PATTERN_LENGTH];
+	uint32_t pattern_indices[MAX_PATTERN_LENGTH]; // TODO: can this be negative as well? ask hannes
 	uint8_t pattern_channels[MAX_PATTERN_LENGTH];
 
 	/* offset between CLKN (local) and CLK of piconet */
-	int clk_offset;
+	uint32_t clk_offset; // TODO: can this be negative as well? ask hannes
 
 	/* local clock (clkn) at time of first packet */
 	uint32_t first_pkt_time;
@@ -112,11 +112,7 @@ void precalc(btbb_piconet *pnet);
 void address_precalc(int address, btbb_piconet *pnet);
 
 /* drop-in replacement for perm5() using lookup table */
-int fast_perm(int z, int p_high, int p_low);
-
-/* 5 bit permutation */
-/* assumes z is constrained to 5 bits, p_high to 5 bits, p_low to 9 bits */
-int perm5(int z, int p_high, int p_low);
+uint8_t fast_perm(uint8_t z, uint8_t p_high, uint16_t p_low);
 
 /* determine channel for a particular hop */
 /* replaced with gen_hops() for a complete sequence but could still come in handy */

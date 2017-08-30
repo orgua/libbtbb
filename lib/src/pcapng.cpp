@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2014 Christopher D. Kilgour techie AT whiterocker.com
  *
@@ -48,8 +48,8 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 	size_t zeroes = 0;
 	ssize_t result = -1;
 
-	handle->section_header = NULL;
-	handle->interface_description = NULL;
+	handle->section_header = nullptr;
+	handle->interface_description = nullptr;
 	handle->section_header_size = handle->next_section_option_offset =
 		handle->interface_description_size =
 		handle->next_interface_option_offset = 0;
@@ -90,7 +90,7 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 		       section_options &&
 		       section_options->option_code &&
 		       section_options->option_length) {
-			size_t paddedsz = 4*((section_options->option_length+3)/4);
+			size_t paddedsz = uint8_t(4)*((section_options->option_length+uint8_t(3))/uint8_t(4)); // TODO: check if this is ok, like before
 			zeroes = paddedsz - section_options->option_length;
 			result = write( handle->fd, section_options, 4+section_options->option_length );
 			while ((zeroes > 0) && (result != -1)) {
@@ -147,7 +147,7 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 			       interface_options &&
 			       interface_options->option_code &&
 			       interface_options->option_length) {
-				size_t paddedsz = 4*((interface_options->option_length+3)/4);
+				size_t paddedsz = uint8_t(4)*((interface_options->option_length+uint8_t(3))/uint8_t(4)); // TODO: check if this is ok, like before
 				zeroes = paddedsz - interface_options->option_length;
 				result = write( handle->fd, interface_options, 4+interface_options->option_length );
 				while ((zeroes > 0) && (result != -1)) {
@@ -194,8 +194,8 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 		}
 		else {
 			uint8_t * dest = &((uint8_t *)handle->section_header)[handle->next_section_option_offset];
-			padopt.option_length = handle->section_header_size -
-				handle->next_section_option_offset - 12;
+			padopt.option_length = static_cast<uint16_t>(handle->section_header_size -
+                            handle->next_section_option_offset - 12);
 
 			/* Add padding options, update the header sizes. */
 			(void) memcpy( dest, &padopt, sizeof( padopt ) );
@@ -204,8 +204,8 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 			((uint32_t*)handle->section_header)[handle->section_header_size/4-1] =
 				(uint32_t) handle->section_header_size;
 
-			padopt.option_length = handle->interface_description_size -
-				handle->next_interface_option_offset - 12;
+			padopt.option_length = static_cast<uint16_t>(handle->interface_description_size -
+                            handle->next_interface_option_offset - 12);
 			dest = &((uint8_t *)handle->interface_description)[handle->next_interface_option_offset];
 			(void) memcpy( dest, &padopt, sizeof( padopt ) );
 			handle->interface_description->block_total_length =
@@ -240,8 +240,8 @@ PCAPNG_RESULT pcapng_append_section_option( PCAPNG_HANDLE * handle,
 
 			/* update padding option */
 			dest = &((uint8_t *)handle->section_header)[handle->next_section_option_offset];
-			padopt.option_length = handle->section_header_size -
-				handle->next_section_option_offset - 12;
+			padopt.option_length = static_cast<uint16_t>(handle->section_header_size -
+                            handle->next_section_option_offset - 12);
 			(void) memcpy( dest, &padopt, sizeof( padopt ) );
 		}
 		else {
@@ -270,8 +270,8 @@ PCAPNG_RESULT pcapng_append_interface_option( PCAPNG_HANDLE * handle,
 
 			/* update padding option */
 			dest = &((uint8_t *)handle->interface_description)[handle->next_interface_option_offset];
-			padopt.option_length = handle->interface_description_size -
-				handle->next_interface_option_offset - 12;
+			padopt.option_length = static_cast<uint16_t>(handle->interface_description_size -
+                            handle->next_interface_option_offset - 12);
 			(void) memcpy( dest, &padopt, sizeof( padopt ) );
 		}
 		else {

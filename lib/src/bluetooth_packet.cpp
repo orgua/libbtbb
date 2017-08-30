@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2007 - 2013 Dominic Spill, Michael Ossmann, Will Code
  *
@@ -69,7 +69,7 @@ static const char * const TYPE_NAMES[] = {
  * thanks to http://www.ee.unb.ca/cgi-bin/tervo/polygen.pl
  * modified for barker code
  */
-static constexpr uint64_t sw_matrix[] = {
+static constexpr uint64_t SW_MATRIX[] = {
 	0xfe000002a0d1c014ULL, 0x01000003f0b9201fULL, 0x008000033ae40edbULL, 0x004000035fca99b9ULL,
 	0x002000036d5dd208ULL, 0x00100001b6aee904ULL, 0x00080000db577482ULL, 0x000400006dabba41ULL,
 	0x00020002f46d43f4ULL, 0x000100017a36a1faULL, 0x00008000bd1b50fdULL, 0x000040029c3536aaULL,
@@ -77,7 +77,7 @@ static constexpr uint64_t sw_matrix[] = {
 	0x00000203ef526bd1ULL, 0x000001033511ab3cULL, 0x000000819a88d59eULL, 0x00000040cd446acfULL,
 	0x00000022a41aabb3ULL, 0x0000001390b5cb0dULL, 0x0000000b0ae27b52ULL, 0x0000000585713da9ULL};
 
-static constexpr uint64_t barker_correct[] = {
+static constexpr uint64_t BARKER_CORRECT[] = {
 	0xb000000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL,
 	0x4e00000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL,
 	0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL, 0x4e00000000000000ULL,
@@ -111,9 +111,9 @@ static constexpr uint64_t barker_correct[] = {
 	0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL,
 	0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL, 0x4e00000000000000ULL};
 
-static constexpr uint64_t pn = 0x83848D96BBCC54FCULL;
+static constexpr uint64_t PN = 0x83848D96BBCC54FCull;
 
-static const uint16_t fec23_gen_matrix[] = {
+static constexpr uint16_t FEC23_GEN_MATRIX[] = {
 	0x2c01, 0x5802, 0x1c04, 0x3808, 0x7010,
 	0x4c20, 0x3440, 0x6880, 0x7d00, 0x5600};
 
@@ -148,19 +148,19 @@ static uint64_t gen_syndrome(const uint64_t codeword)
 	uint64_t codeword_ = codeword;
     uint64_t syndrome = codeword_ & 0xffffffff;
     codeword_ >>= 32;
-	syndrome ^= sw_check_table4[codeword_ & 0xff];
+	syndrome ^= SW_CHECK_TABLE4[codeword_ & 0xff];
     codeword_ >>= 8;
-	syndrome ^= sw_check_table5[codeword_ & 0xff];
+	syndrome ^= SW_CHECK_TABLE5[codeword_ & 0xff];
     codeword_ >>= 8;
-	syndrome ^= sw_check_table6[codeword_ & 0xff];
+	syndrome ^= SW_CHECK_TABLE6[codeword_ & 0xff];
     codeword_ >>= 8;
-	syndrome ^= sw_check_table7[codeword_ & 0xff];
+	syndrome ^= SW_CHECK_TABLE7[codeword_ & 0xff];
 	return syndrome;
 }
 
 static void cycle(const uint64_t error, const uint8_t start, const uint32_t depth, const uint64_t codeword)
 {
-	uint64_t  base = 1uul << start;
+	uint64_t  base = uint64_t(1) << start;
 	for (uint8_t i = start; i < 58; i++)
 	{
 		const uint64_t new_error = base | error;
@@ -192,7 +192,7 @@ uint64_t btbb_gen_syncword(const uint32_t LAP)
 	uint64_t codeword = DEFAULT_CODEWORD;
     uint32_t shiftword = 0x800000;
 	/* the sync word generated is in host order, not air order */
-	for (unsigned long i : sw_matrix)
+	for (unsigned long i : SW_MATRIX)
     {
         if (LAP & shiftword)
         {
@@ -389,10 +389,10 @@ size_t promiscuous_packet_search(const uint8_t * const stream, const size_t sear
 			syncword = air_to_host64(symbols, 64);
 
 			/* correct the barker code with a simple comparison */
-			corrected_barker = barker_correct[(uint8_t)(syncword >> 57)];
+			corrected_barker = BARKER_CORRECT[(uint8_t)(syncword >> 57)];
 			syncword = (syncword & 0x01ffffffffffffffULL) | corrected_barker;
 
-			codeword = syncword ^ pn;
+			codeword = syncword ^ PN;
 
 			/* Zero syndrome -> good codeword. */
 			syndrome = gen_syndrome(codeword);
@@ -495,15 +495,16 @@ void btbb_packet_set_flag(btbb_packet *pkt, int flag, int val)
 		pkt->flags |= mask;
 }
 
-int btbb_packet_get_flag(const btbb_packet *pkt, int flag)
+bool btbb_packet_get_flag(const btbb_packet *pkt, const uint8_t flag)
 {
-	uint32_t mask = uint32_t(1) << flag;
+	assert(flag <= 32);
+    uint32_t mask = uint32_t(1) << flag;
 	return ((pkt->flags & mask) != 0);
 }
 
-const char *btbb_get_symbols(const btbb_packet* pkt)
+uint8_t * const btbb_get_symbols(const btbb_packet * const pkt)
 {
-	return (const char*) pkt->symbols;
+	return (uint8_t * const) pkt->symbols;
 }
 
 uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt)
@@ -511,16 +512,15 @@ uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt)
 	return pkt->payload_length;
 }
 
-const char *btbb_get_payload(const btbb_packet* pkt)
+uint8_t * const btbb_get_payload(const btbb_packet * const pkt)
 {
-	return (const char*) pkt->payload;
+	return (uint8_t * const) pkt->payload;
 }
 
-uint32_t btbb_get_payload_packed(const btbb_packet* pkt, char *dst)
+uint16_t btbb_get_payload_packed(const btbb_packet* pkt, uint8_t * const dst)
 {
-	int i;
-	for(i=0;i<pkt->payload_length;i++)
-		dst[i] = (char) air_to_host8(&pkt->payload[i*8], 8);
+	for(uint16_t i=0; i<pkt->payload_length; i++)
+		dst[i] = air_to_host8(&pkt->payload[i*8], 8);
 	return pkt->payload_length;
 }
 
@@ -595,13 +595,12 @@ static bool unfec13(const uint8_t * const input, uint8_t * const output, const u
 /* encode 10 bits with 2/3 rate FEC code, a (15,10) shortened Hamming code */
 static uint16_t fec23(uint16_t data)
 {
-	int i;
 	uint16_t codeword = 0;
 
 	/* host order, not air order */
-	for (i = 0; i < 10; i++)
+	for (uint8_t i = 0; i < 10; i++)
 		if (data & (1 << i))
-			codeword ^= fec23_gen_matrix[i];
+			codeword ^= FEC23_GEN_MATRIX[i];
 
 	return codeword;
 }
@@ -672,20 +671,18 @@ static uint8_t * const unfec23(const uint8_t * const input, uint16_t length_bits
 
 
 /* Remove the whitening from an air order array */
-static void unwhiten(const uint8_t * const input, uint8_t * const output, int clock, int length, int skip, btbb_packet* pkt)
+static void unwhiten(const uint8_t * const input, uint8_t * const output, const uint32_t clock, const uint16_t length, const uint16_t skip, const btbb_packet * const pkt)
 {
-	int count, index;
-	index = INDICES[clock & 0x3f];
-	index += skip;
+	uint16_t index = INDICES[clock & 0x3f] + skip;
 	index %= 127;
 
-	for(count = 0; count < length; count++)
+	for(uint16_t count = 0; count < length; count++)
 	{
 		/* unwhiten if whitened, otherwise just copy input to output */
 		output[count] = btbb_packet_get_flag(pkt, BTBB_WHITENED) ?
 			input[count] ^ WHITENING_DATA[index] : input[count];
-		index += 1;
-		index %= 127;
+        if (index < 126) index++;
+        else             index=0;
 	}
 }
 
@@ -722,7 +719,7 @@ static uint8_t uap_from_hec(uint16_t data, uint8_t hec)
 }
 
 /* check if the packet's CRC is correct for a given clock (CLK1-6) */
-int crc_check(int clock, btbb_packet* pkt)
+uint16_t crc_check(const uint32_t clock, btbb_packet * const pkt)
 {
 	/*
 	 * return value of 1 represents inconclusive result (default)
@@ -730,7 +727,7 @@ int crc_check(int clock, btbb_packet* pkt)
 	 * return value of 0 represents negative result (e.g. CRC failure without
 	 * the possibility that we have assumed the wrong logical transport)
 	 */
-	int retval = 1;
+	uint16_t retval = 1;
 
 	switch(pkt->packet_type)
 	{
@@ -774,19 +771,23 @@ int crc_check(int clock, btbb_packet* pkt)
 	 * other type could have actually been something else (another logical
 	 * transport)
 	 */
-	if (retval == 0 && (pkt->packet_type != 2 && pkt->packet_type != 3 &&
-			pkt->packet_type != 5))
-		return 1;
+	if (retval == 0 && (pkt->packet_type != 2 && pkt->packet_type != 3 && pkt->packet_type != 5))
+    {
+        return 1;
+    }
+
 
 	/* EV3 and EV5 have a relatively high false positive rate */
 	if (retval > 1 && (pkt->packet_type == 7 || pkt->packet_type == 13))
-		return 1;
+    {
+        return 1;
+    }
 
 	return retval;
 }
 
 /* verify the payload CRC */
-static int payload_crc(btbb_packet* pkt)
+static bool payload_crc(const btbb_packet * const pkt)
 {
 	uint16_t crc;   /* CRC calculated from payload data */
 	uint16_t check; /* CRC supplied by packet */
@@ -797,12 +798,13 @@ static int payload_crc(btbb_packet* pkt)
 	return (crc == check);
 }
 
-int fhs(int clock, btbb_packet* pkt)
+uint16_t fhs(const uint32_t clock, btbb_packet* const pkt)
 {
 	/* skip the access code and packet header */
 	const uint8_t * const stream = pkt->symbols + 122;
 	/* number of symbols remaining after access code and packet header */
-	int size = pkt->length - 122;
+	const uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	pkt->payload_length = 20;
 
@@ -814,15 +816,15 @@ int fhs(int clock, btbb_packet* pkt)
 		return 0;
 
 	/* try to unwhiten with known clock bits */
-	unwhiten(corrected, pkt->payload, clock, pkt->payload_length * 8, 18, pkt);
+	unwhiten(corrected, pkt->payload, clock, pkt->payload_length * uint8_t(8), 18, pkt);
 	if (payload_crc(pkt)) {
 		free(corrected);
 		return 1000;
 	}
 
 	/* try all 32 possible X-input values instead */
-	for (clock = 32; clock < 64; clock++) {
-		unwhiten(corrected, pkt->payload, clock, pkt->payload_length * 8, 18, pkt);
+	for (uint8_t i_clock = 32; i_clock < 64; i_clock++) {
+		unwhiten(corrected, pkt->payload, i_clock, pkt->payload_length * uint8_t(8), 18, pkt);
 		if (payload_crc(pkt)) {
 			free(corrected);
 			return 1000;
@@ -835,7 +837,7 @@ int fhs(int clock, btbb_packet* pkt)
 }
 
 /* decode payload header, return value indicates success */
-static int decode_payload_header(const uint8_t * const stream, int clock, const uint8_t header_bytes, int size, int fec, btbb_packet* pkt)
+static int decode_payload_header(const uint8_t * const stream, uint32_t clock, const uint8_t header_bytes, int size, int fec, btbb_packet * const pkt)
 {
 	if(header_bytes == 2)
 	{
@@ -914,16 +916,17 @@ static int decode_payload_header(const uint8_t * const stream, int clock, const 
 }
 
 /* DM 1/3/5 packet (and DV)*/
-int DM(int clock, btbb_packet* pkt)
+uint16_t DM(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* number of bytes in the payload header */
 	uint8_t header_bytes = 2;
 	/* maximum payload length */
-	int max_length;
+	uint16_t max_length = 0;
 	/* skip the access code and packet header */
 	uint8_t * stream = pkt->symbols + uint8_t(122);
 	/* number of symbols remaining after access code and packet header */
-	uint16_t size = pkt->length -static_cast<uint8_t>(122);
+	uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	switch(pkt->packet_type)
 	{
@@ -977,17 +980,17 @@ int DM(int clock, btbb_packet* pkt)
 
 /* DH 1/3/5 packet (and AUX1) */
 /* similar to DM 1/3/5 but without FEC */
-int DH(int clock, btbb_packet* pkt)
+uint16_t DH(uint32_t clock, btbb_packet* const pkt)
 {
-	int bitlength;
 	/* number of bytes in the payload header */
 	uint8_t header_bytes = 2;
 	/* maximum payload length */
-	int max_length;
+	uint16_t max_length = 0;
 	/* skip the access code and packet header */
 	uint8_t *stream = pkt->symbols + uint8_t(122);
 	/* number of symbols remaining after access code and packet header */
-	int size = pkt->length - 122;
+	uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	switch(pkt->packet_type)
 	{
@@ -1011,7 +1014,7 @@ int DH(int clock, btbb_packet* pkt)
 	if(pkt->payload_length > max_length)
 		/* could be encrypted */
 		return 1;
-	bitlength = pkt->payload_length*8;
+	const uint16_t bitlength = pkt->payload_length * uint8_t(8);
 	if(bitlength > size)
 		return 1; //FIXME should throw exception
 
@@ -1028,30 +1031,28 @@ int DH(int clock, btbb_packet* pkt)
 	return 2;
 }
 
-int EV3(int clock, btbb_packet* pkt)
+uint16_t EV3(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* skip the access code and packet header */
 	const uint8_t * const stream = pkt->symbols + uint8_t(122);
 
 	/* number of symbols remaining after access code and packet header */
-	int size = pkt->length - 122;
+	const uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	/* maximum payload length is 30 bytes + 2 bytes CRC */
-	int maxlength = 32;
-
-	/* number of bits we have decoded */
-	int bits;
+	constexpr uint16_t maxlength = 30 + 2;
 
 	/* check CRC for any integer byte length up to maxlength */
 	for (pkt->payload_length = 0;
 			pkt->payload_length < maxlength; pkt->payload_length++) {
 
-		bits = pkt->payload_length * 8;
+        const uint16_t bits = pkt->payload_length * uint8_t(8); /* number of bits we have decoded */
 
 		/* unwhiten next byte */
 		if ((bits + 8) > size)
 			return 1; //FIXME should throw exception
-		unwhiten(stream, pkt->payload + bits, clock, 8, 18 + bits, pkt);
+		unwhiten(stream, pkt->payload + bits, clock, 8, uint8_t(18) + bits, pkt);
 
 		if ((pkt->payload_length > 2) && (payload_crc(pkt)))
 				return 10;
@@ -1059,28 +1060,29 @@ int EV3(int clock, btbb_packet* pkt)
 	return 2;
 }
 
-int EV4(int clock, btbb_packet* pkt)
+uint16_t EV4(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* skip the access code and packet header */
 	const uint8_t * const stream = pkt->symbols + 122;
 
 	/* number of symbols remaining after access code and packet header */
-	int size = pkt->length - 122;
+	uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	/*
 	 * maximum payload length is 120 bytes + 2 bytes CRC
 	 * after FEC2/3, this results in a maximum of 1470 symbols
 	 */
-	int maxlength = 1470;
+	constexpr uint16_t maxlength = 1470; // TODO:
 
 	/*
 	 * minumum payload length is 1 bytes + 2 bytes CRC
 	 * after FEC2/3, this results in a minimum of 45 symbols
 	 */
-	int minlength = 45;
+	constexpr uint16_t minlength = 45;
 
-	int syms = 0; /* number of symbols we have decoded */
-	int bits = 0; /* number of payload bits we have decoded */
+	uint16_t syms = 0; /* number of symbols we have decoded */
+	uint16_t bits = 0; /* number of payload bits we have decoded */
 
 	pkt->payload_length = 1;
 
@@ -1097,7 +1099,7 @@ int EV4(int clock, btbb_packet* pkt)
 			else
 				return 1;
 		}
-		unwhiten(corrected, pkt->payload + bits, clock, 10, 18 + bits, pkt);
+		unwhiten(corrected, pkt->payload + bits, clock, 10, uint8_t(18) + bits, pkt);
 		free(corrected);
 
 		/* check CRC one byte at a time */
@@ -1112,30 +1114,29 @@ int EV4(int clock, btbb_packet* pkt)
 	return 2;
 }
 
-int EV5(int clock, btbb_packet* pkt)
+uint16_t EV5(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* skip the access code and packet header */
 	const uint8_t * const stream = pkt->symbols + 122;
 
 	/* number of symbols remaining after access code and packet header */
-	int size = pkt->length - 122;
+	const uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	/* maximum payload length is 180 bytes + 2 bytes CRC */
-	int maxlength = 182;
-
-	/* number of bits we have decoded */
-	int bits;
+	constexpr uint16_t maxlength = 180 + 2;
 
 	/* check CRC for any integer byte length up to maxlength */
 	for (pkt->payload_length = 0;
 			pkt->payload_length < maxlength; pkt->payload_length++) {
 
-		bits = pkt->payload_length * 8;
+        /* number of bits we have decoded */
+		const uint16_t bits = pkt->payload_length * uint8_t(8);
 
 		/* unwhiten next byte */
 		if ((bits + 8) > size)
 			return 1; //FIXME should throw exception
-		unwhiten(stream, pkt->payload + bits, clock, 8, 18 + bits, pkt);
+		unwhiten(stream, pkt->payload + bits, clock, 8, uint8_t(18) + bits, pkt);
 
 		if ((pkt->payload_length > 2) && (payload_crc(pkt)))
 				return 10;
@@ -1144,12 +1145,13 @@ int EV5(int clock, btbb_packet* pkt)
 }
 
 /* HV packet type payload parser */
-int HV(int clock, btbb_packet* pkt)
+uint16_t HV(const uint32_t clock, btbb_packet * const pkt) // TODO: fix return of all
 {
 	/* skip the access code and packet header */
     const uint8_t * const stream = pkt->symbols + 122;
 	/* number of symbols remaining after access code and packet header */
-	int size = pkt->length - 122;
+	const uint16_t size = pkt->length - uint8_t(122);
+    assert(pkt->length > 122);
 
 	pkt->payload_header_length = 0;
 	if(size < 240) {
@@ -1165,7 +1167,7 @@ int HV(int clock, btbb_packet* pkt)
 				return 0;
 			pkt->payload_length = 10;
 			btbb_packet_set_flag(pkt, BTBB_HAS_PAYLOAD, 1);
-			unwhiten(corrected, pkt->payload, clock, pkt->payload_length*8, 18, pkt);
+			unwhiten(corrected, pkt->payload, clock, pkt->payload_length * uint8_t(8), 18, pkt);
 			}
 			break;
 		case PACKET_TYPE_HV2:
@@ -1175,15 +1177,17 @@ int HV(int clock, btbb_packet* pkt)
 				return 0;
 			pkt->payload_length = 20;
 			btbb_packet_set_flag(pkt, BTBB_HAS_PAYLOAD, 1);
-			unwhiten(corrected, pkt->payload, clock, pkt->payload_length*8, 18, pkt);
+			unwhiten(corrected, pkt->payload, clock, pkt->payload_length * uint8_t(8), 18, pkt);
 			free(corrected);
 			}
 			break;
 		case PACKET_TYPE_HV3:
 			pkt->payload_length = 30;
 			btbb_packet_set_flag(pkt, BTBB_HAS_PAYLOAD, 1);
-			unwhiten(stream, pkt->payload, clock, pkt->payload_length*8, 18, pkt);
+			unwhiten(stream, pkt->payload, clock, pkt->payload_length * uint8_t(8), 18, pkt);
 			break;
+    default:
+        break;
 	}
 
 	return 2;
@@ -1191,7 +1195,7 @@ int HV(int clock, btbb_packet* pkt)
 /* try a clock value (CLK1-6) to unwhiten packet header,
  * sets resultant p->packet_type and p->UAP, returns UAP.
  */
-uint8_t try_clock(int clock, btbb_packet* pkt)
+uint8_t try_clock(const uint32_t clock, btbb_packet* const pkt)
 {
 	/* skip 72 bit access code */
 	const uint8_t * const stream = pkt->symbols + 68;
@@ -1236,9 +1240,9 @@ int btbb_decode_header(btbb_packet* pkt)
 	return 0;
 }
 
-int btbb_decode_payload(btbb_packet* pkt)
+uint16_t btbb_decode_payload(btbb_packet * const pkt)
 {
-	int rv = 0;
+	uint16_t rv = 0;
 	pkt->payload_header_length = 0;
 
 	switch(pkt->packet_type)
@@ -1315,9 +1319,9 @@ int btbb_decode_payload(btbb_packet* pkt)
 }
 
 /* decode the whole packet */
-int btbb_decode(btbb_packet* pkt)
+uint16_t btbb_decode(btbb_packet * const pkt)
 {
-	int rv = 0;
+	uint16_t rv = 0;
 
 	btbb_packet_set_flag(pkt, BTBB_HAS_PAYLOAD, 0);
 
@@ -1360,7 +1364,6 @@ uint8_t * const tun_format(btbb_packet* pkt)
 	/* include 6 bytes for meta data, 3 bytes for packet header */
 	const uint16_t length = uint8_t(9) + pkt->payload_length;
 	auto * const tun_format = new uint8_t(length);
-	int i;
 
 	/* meta data */
 	tun_format[0] = static_cast<uint8_t>(pkt->clkn & 0xff);
@@ -1368,38 +1371,35 @@ uint8_t * const tun_format(btbb_packet* pkt)
 	tun_format[2] = static_cast<uint8_t>((pkt->clkn >> 16) & 0xff);
 	tun_format[3] = static_cast<uint8_t>((pkt->clkn >> 24) & 0xff);
 	tun_format[4] = pkt->channel;
-	tun_format[5] = btbb_packet_get_flag(pkt, BTBB_CLK27_VALID) |
-		(btbb_packet_get_flag(pkt, BTBB_NAP_VALID) << 1);
+	tun_format[5] = static_cast<uint8_t>(btbb_packet_get_flag(pkt, BTBB_CLK27_VALID)) |
+                    static_cast<uint8_t>(btbb_packet_get_flag(pkt, BTBB_NAP_VALID) << 1);
 
 	/* packet header modified to fit byte boundaries */
 	/* lt_addr and type */
-	tun_format[6] = (char) air_to_host8(&pkt->packet_header[0], 7);
+	tun_format[6] = air_to_host8(&pkt->packet_header[0], 7);
 	/* flags */
-	tun_format[7] = (char) air_to_host8(&pkt->packet_header[7], 3);
+	tun_format[7] = air_to_host8(&pkt->packet_header[7], 3);
 	/* HEC */
-	tun_format[8] = (char) air_to_host8(&pkt->packet_header[10], 8);
+	tun_format[8] = air_to_host8(&pkt->packet_header[10], 8);
 
-	for(i=0;i<pkt->payload_length;i++)
-		tun_format[i+9] = (char) air_to_host8(&pkt->payload[i*8], 8);
+	for(uint16_t i=0;i<pkt->payload_length;i++)
+		tun_format[i+9] = air_to_host8(&pkt->payload[i*8], 8);
 
 	return tun_format;
 }
 
 /* check to see if the packet has a header */
-int btbb_header_present(const btbb_packet* pkt)
+bool btbb_header_present(const btbb_packet* pkt) // TODO: a lot to do here, search for returns
 {
 	/* skip to last bit of sync word */
 	const uint8_t * stream = pkt->symbols + 63;
-	int be = 0; /* bit errors */
-	char msb;   /* most significant (last) bit of sync word */
-	int a, b, c;
 
 	/* check that we have enough symbols */
-	if (pkt->length < 122)
-		return 0;
+	if (pkt->length < 122)	return false;
 
 	/* check that the AC trailer is correct */
-	msb = stream[0];
+	const uint8_t msb = stream[0]; /* most significant (last) bit of sync word */
+    uint8_t       be  = 0; /* bit errors */
 	be += stream[1] ^ !msb;
 	be += stream[2] ^ msb;
 	be += stream[3] ^ !msb;
@@ -1411,9 +1411,9 @@ int btbb_header_present(const btbb_packet* pkt)
 	 * number of times three symbols in a row don't all agree.
 	 */
 	stream += 5;
-	for (a = 0; a < 54; a += 3) {
-		b = a + 1;
-		c = a + 2;
+	for (uint8_t a = 0; a < 54; a += 3) {
+		const uint8_t b = a + uint8_t(1);
+		const uint8_t c = a + uint8_t(2);
 		be += ((stream[a] ^ stream[b]) |
 			(stream[b] ^ stream[c]) | (stream[c] ^ stream[a]));
 	}
@@ -1426,28 +1426,28 @@ int btbb_header_present(const btbb_packet* pkt)
 }
 
 /* extract LAP from FHS payload */
-uint32_t lap_from_fhs(btbb_packet* pkt)
+uint32_t lap_from_fhs(const btbb_packet * const pkt)
 {
 	/* caller should check got_payload() and get_type() */
 	return air_to_host32(&pkt->payload[34], 24);
 }
 
 /* extract UAP from FHS payload */
-uint8_t uap_from_fhs(btbb_packet* pkt)
+uint8_t uap_from_fhs(const btbb_packet * const pkt)
 {
 	/* caller should check got_payload() and get_type() */
 	return air_to_host8(&pkt->payload[64], 8);
 }
 
 /* extract NAP from FHS payload */
-uint16_t nap_from_fhs(btbb_packet* pkt)
+uint16_t nap_from_fhs(const btbb_packet * const pkt)
 {
 	/* caller should check got_payload() and get_type() */
 	return air_to_host16(&pkt->payload[72], 16);
 }
 
 /* extract clock from FHS payload */
-uint32_t clock_from_fhs(btbb_packet* pkt)
+uint32_t clock_from_fhs(const btbb_packet * const pkt)
 {
 	/*
 	 * caller should check got_payload() and get_type()

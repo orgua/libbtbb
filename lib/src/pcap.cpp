@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2014 Christopher D. Kilgour techie AT whiterocker.com
  *
@@ -60,7 +60,7 @@ FILE *btbb_pcap_open(const char *filename, uint32_t dlt, uint32_t snaplen) {
 	};
 
 	FILE *pcap_file = fopen(filename, "w");
-	if (pcap_file == NULL) return NULL;
+	if (pcap_file == nullptr) return nullptr;
 
 	fwrite(&pcap_header, sizeof(pcap_header), 1, pcap_file);
 
@@ -73,8 +73,7 @@ struct btbb_pcap_handle {
 	FILE *pcap_file;
 };
 
-int 
-btbb_pcap_create_file(const char *filename, btbb_pcap_handle ** ph)
+int btbb_pcap_create_file(const char *filename, btbb_pcap_handle ** ph)
 {
 	int retval = 0;
 	btbb_pcap_handle * handle = new btbb_pcap_handle;
@@ -119,8 +118,7 @@ void btbb_pcap_dump(FILE *file, pcaprec_hdr_t *pcap_header, u_char *data) {
 	fflush(file);
 }
 
-static void
-assemble_pcapng_bredr_packet( pcap_bredr_packet * pkt,
+static void assemble_pcapng_bredr_packet( pcap_bredr_packet * pkt,
 			      const uint32_t interface_id __attribute__((unused)),
 			      const uint64_t ns,
 			      const uint32_t caplen,
@@ -144,8 +142,8 @@ assemble_pcapng_bredr_packet( pcap_bredr_packet * pkt,
 				+ caplen;
 	uint32_t reflapuap = (ref_lap&0xffffff) | (ref_uap<<24);
 
-	pkt->pcap_header.ts_sec  = ns / 1000000000ull;
-	pkt->pcap_header.ts_usec = ns % 1000000000ull;
+	pkt->pcap_header.ts_sec  = static_cast<uint32_t>(ns / 1000000000ull);
+	pkt->pcap_header.ts_usec = static_cast<uint32_t>(ns % 1000000000ull);
 	pkt->pcap_header.incl_len = pcap_caplen;
 	pkt->pcap_header.orig_len = pcap_caplen;
 
@@ -171,20 +169,20 @@ assemble_pcapng_bredr_packet( pcap_bredr_packet * pkt,
 	}
 }
 
-int 
-btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns, 
+int btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns,
 			const int8_t sigdbm, const int8_t noisedbm,
 			const uint32_t reflap, const uint8_t refuap, 
 			const btbb_packet *pkt)
 {
-	if (h && h->pcap_file) {
+	if (h && h->pcap_file)
+    {
 		uint16_t flags = BREDR_DEWHITENED | BREDR_SIGPOWER_VALID |
-			((noisedbm < sigdbm) ? BREDR_NOISEPOWER_VALID : 0) |
-			((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : 0) |
-			((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : 0);
-		uint32_t caplen = (uint32_t) btbb_packet_get_payload_length(pkt);
+			((noisedbm < sigdbm) ? BREDR_NOISEPOWER_VALID : uint16_t(0)) |
+			((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : uint16_t(0)) |
+			((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : uint16_t(0));
+		uint32_t caplen = btbb_packet_get_payload_length(pkt);
 		uint8_t payload_bytes[caplen];
-		btbb_get_payload_packed( pkt, (char *) &payload_bytes[0] );
+		btbb_get_payload_packed( pkt, &payload_bytes[0] );
 		caplen = min(static_cast<uint32_t>(BREDR_MAX_PAYLOAD), caplen);
 		pcap_bredr_packet pcap_pkt;
 		assemble_pcapng_bredr_packet( &pcap_pkt,
@@ -211,8 +209,7 @@ btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns,
 	return -PCAP_INVALID_HANDLE;
 }
 
-int 
-btbb_pcap_close(btbb_pcap_handle * h)
+int btbb_pcap_close(btbb_pcap_handle * h)
 {
 	if (h && h->pcap_file) {
 		fclose(h->pcap_file);
@@ -232,8 +229,7 @@ struct lell_pcap_handle {
 	uint8_t btle_ppi_version;
 };
 
-static int
-lell_pcap_create_file_dlt(const char *filename, int dlt, lell_pcap_handle ** ph)
+static int lell_pcap_create_file_dlt(const char *filename, int dlt, lell_pcap_handle ** ph)
 {
 	int retval = 0;
 	lell_pcap_handle * handle = new lell_pcap_handle;
@@ -259,14 +255,12 @@ fail:
 	return retval;
 }
 
-int 
-lell_pcap_create_file(const char *filename, lell_pcap_handle ** ph)
+int lell_pcap_create_file(const char *filename, lell_pcap_handle ** ph)
 {
 	return lell_pcap_create_file_dlt(filename, DLT_BLUETOOTH_LE_LL_WITH_PHDR, ph);
 }
 
-int 
-lell_pcap_ppi_create_file(const char *filename, int btle_ppi_version, 
+int lell_pcap_ppi_create_file(const char *filename, const uint8_t btle_ppi_version,
 			  lell_pcap_handle ** ph)
 {
 	int retval = lell_pcap_create_file_dlt(filename, DLT_PPI, ph);
@@ -296,8 +290,8 @@ static void assemble_pcapng_le_packet( pcap_le_packet * pkt,
 {
 	uint32_t incl_len = min(static_cast<uint32_t>(LE_MAX_PAYLOAD), caplen);
 
-	pkt->pcap_header.ts_sec  = ns / 1000000000ull;
-	pkt->pcap_header.ts_usec = ns % 1000000000ull;
+	pkt->pcap_header.ts_sec  = static_cast<uint32_t>(ns / 1000000000ull);
+	pkt->pcap_header.ts_usec = static_cast<uint32_t>(ns % 1000000000ull);
 	pkt->pcap_header.incl_len = sizeof(pcap_bluetooth_le_ll_header)+caplen;
 	pkt->pcap_header.orig_len = sizeof(pcap_bluetooth_le_ll_header)+incl_len;
 
@@ -319,8 +313,8 @@ lell_pcap_append_packet(lell_pcap_handle * h, const uint64_t ns,
 	    (h->dlt == DLT_BLUETOOTH_LE_LL_WITH_PHDR)) {
 		uint16_t flags = LE_DEWHITENED | LE_AA_OFFENSES_VALID |
 			LE_SIGPOWER_VALID |
-			((noisedbm < sigdbm) ? LE_NOISEPOWER_VALID : 0) |
-			(lell_packet_is_data(pkt) ? 0 : LE_REF_AA_VALID);
+			((noisedbm < sigdbm) ? LE_NOISEPOWER_VALID : uint16_t(0)) |
+			(lell_packet_is_data(pkt) ? uint16_t(0) : LE_REF_AA_VALID);
 		pcap_le_packet pcap_pkt;
 		assemble_pcapng_le_packet( &pcap_pkt,
 					   0,
@@ -386,7 +380,7 @@ lell_pcap_append_ppi_packet(lell_pcap_handle * h, const uint64_t ns,
 			sizeof(ppi_packet_header_t) +
 			sizeof(ppi_fieldheader_t) +
 			sizeof(ppi_btle_t);
-		uint16_t MHz = 2402 + 2*lell_get_channel_k(pkt);
+		uint16_t MHz = static_cast<uint16_t>(2402 + 2*lell_get_channel_k(pkt));
 		uint32_t packet_len = pkt->length + 4 + 2 + 3; // AA + header + CRC
 		uint32_t incl_len   = min(static_cast<uint32_t>(LE_MAX_PAYLOAD), packet_len);
 

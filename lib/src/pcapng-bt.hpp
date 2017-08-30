@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2014 Christopher D. Kilgour techie AT whiterocker.com
  *

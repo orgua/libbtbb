@@ -1,4 +1,4 @@
-static constexpr uint64_t sw_check_table4[] = {
+static constexpr uint64_t SW_CHECK_TABLE4[] = {
         0x000000000ULL,  0x100000000ULL,  0x200000000ULL,  0x300000000ULL,  0x185713da9ULL,  0x085713da9ULL,  0x385713da9ULL,  0x285713da9ULL,
         0x30ae27b52ULL,  0x20ae27b52ULL,  0x10ae27b52ULL,  0x00ae27b52ULL,  0x28f9346fbULL,  0x38f9346fbULL,  0x08f9346fbULL,  0x18f9346fbULL,
         0x390b5cb0dULL,  0x290b5cb0dULL,  0x190b5cb0dULL,  0x090b5cb0dULL,  0x215c4f6a4ULL,  0x315c4f6a4ULL,  0x015c4f6a4ULL,  0x115c4f6a4ULL,
@@ -32,7 +32,7 @@ static constexpr uint64_t sw_check_table4[] = {
         0x06363dfefULL,  0x16363dfefULL,  0x26363dfefULL,  0x36363dfefULL,  0x1e612e246ULL,  0x0e612e246ULL,  0x3e612e246ULL,  0x2e612e246ULL,
         0x36981a4bdULL,  0x26981a4bdULL,  0x16981a4bdULL,  0x06981a4bdULL,  0x2ecf09914ULL,  0x3ecf09914ULL,  0x0ecf09914ULL,  0x1ecf09914ULL};
 
-static constexpr uint64_t sw_check_table5[] = {
+static constexpr uint64_t SW_CHECK_TABLE5[] = {
         0x000000000ULL,  0x33511ab3cULL,  0x3ef526bd1ULL,  0x0da43c0edULL,  0x25bd5ea0bULL,  0x16ec44137ULL,  0x1b48781daULL,  0x281962ae6ULL,
         0x132dae9bfULL,  0x207cb4283ULL,  0x2dd88826eULL,  0x1e8992952ULL,  0x3690f03b4ULL,  0x05c1ea888ULL,  0x0865d6865ULL,  0x3b34cc359ULL,
         0x265b5d37eULL,  0x150a47842ULL,  0x18ae7b8afULL,  0x2bff61393ULL,  0x03e603975ULL,  0x30b719249ULL,  0x3d13252a4ULL,  0x0e423f998ULL,
@@ -66,7 +66,7 @@ static constexpr uint64_t sw_check_table5[] = {
         0x10a812e7cULL,  0x23f908540ULL,  0x2e5d345adULL,  0x1d0c2ee91ULL,  0x35154c477ULL,  0x064456f4bULL,  0x0be06afa6ULL,  0x38b17049aULL,
         0x0385bc7c3ULL,  0x30d4a6cffULL,  0x3d709ac12ULL,  0x0e218072eULL,  0x2638e2dc8ULL,  0x1569f86f4ULL,  0x18cdc4619ULL,  0x2b9cded25ULL};
 
-static constexpr uint64_t sw_check_table6[] = {
+static constexpr uint64_t SW_CHECK_TABLE6[] = {
         0x000000000ULL,  0x17a36a1faULL,  0x2f46d43f4ULL,  0x38e5be20eULL,  0x06dabba41ULL,  0x1179d1bbbULL,  0x299c6f9b5ULL,  0x3e3f0584fULL,
         0x0db577482ULL,  0x1a161d578ULL,  0x22f3a3776ULL,  0x3550c968cULL,  0x0b6fccec3ULL,  0x1ccca6f39ULL,  0x242918d37ULL,  0x338a72ccdULL,
         0x1b6aee904ULL,  0x0cc9848feULL,  0x342c3aaf0ULL,  0x238f50b0aULL,  0x1db055345ULL,  0x0a133f2bfULL,  0x32f6810b1ULL,  0x2555eb14bULL,
@@ -100,7 +100,7 @@ static constexpr uint64_t sw_check_table6[] = {
         0x2beddac6eULL,  0x3c4eb0d94ULL,  0x04ab0ef9aULL,  0x130864e60ULL,  0x2d376162fULL,  0x3a940b7d5ULL,  0x0271b55dbULL,  0x15d2df421ULL,
         0x2658ad8ecULL,  0x31fbc7916ULL,  0x091e79b18ULL,  0x1ebd13ae2ULL,  0x2082162adULL,  0x37217c357ULL,  0x0fc4c2159ULL,  0x1867a80a3ULL};
 
-static constexpr uint64_t sw_check_table7[] = {
+static constexpr uint64_t SW_CHECK_TABLE7[] = {
         0x000000000ULL,  0x3f0b9201fULL,  0x264037d97ULL,  0x194ba5d88ULL,  0x14d77c687ULL,  0x2bdcee698ULL,  0x32974bb10ULL,  0x0d9cd9b0fULL,
         0x29aef8d0eULL,  0x16a56ad11ULL,  0x0feecf099ULL,  0x30e55d086ULL,  0x3d7984b89ULL,  0x027216b96ULL,  0x1b39b361eULL,  0x243221601ULL,
         0x0b0ae27b5ULL,  0x3401707aaULL,  0x2d4ad5a22ULL,  0x124147a3dULL,  0x1fdd9e132ULL,  0x20d60c12dULL,  0x399da9ca5ULL,  0x06963bcbaULL,

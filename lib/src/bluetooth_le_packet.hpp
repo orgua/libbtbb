@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2007 - 2012 Mike Ryan, Dominic Spill, Michael Ossmann
  * Copyright 2005, 2006 Free Software Foundation, Inc.
