@@ -22,36 +22,36 @@
 #ifndef INCLUDED_BTBB_H
 #define INCLUDED_BTBB_H
 
-#include <stdint.h>
+#include <cstdint>
 
-#define BTBB_WHITENED    0
-#define BTBB_NAP_VALID   1
-#define BTBB_UAP_VALID   2
-#define BTBB_LAP_VALID   3
-#define BTBB_CLK6_VALID  4
-#define BTBB_CLK27_VALID 5
-#define BTBB_CRC_CORRECT 6
-#define BTBB_HAS_PAYLOAD 7
-#define BTBB_IS_EDR      8
+constexpr uint8_t BTBB_WHITENED    			= 0;
+constexpr uint8_t BTBB_NAP_VALID   			= 1;
+constexpr uint8_t BTBB_UAP_VALID   			= 2;
+constexpr uint8_t BTBB_LAP_VALID   			= 3;
+constexpr uint8_t BTBB_CLK6_VALID  			= 4;
+constexpr uint8_t BTBB_CLK27_VALID 			= 5;
+constexpr uint8_t BTBB_CRC_CORRECT 			= 6;
+constexpr uint8_t BTBB_HAS_PAYLOAD			= 7;
+constexpr uint8_t BTBB_IS_EDR      			= 8;
 
-#define BTBB_HOP_REVERSAL_INIT 9
-#define BTBB_GOT_FIRST_PACKET  10
-#define BTBB_IS_AFH            11
-#define BTBB_LOOKS_LIKE_AFH    12
-#define BTBB_IS_ALIASED        13
-#define BTBB_FOLLOWING         14
+constexpr uint8_t BTBB_HOP_REVERSAL_INIT 	= 9;
+constexpr uint8_t BTBB_GOT_FIRST_PACKET 	= 10;
+constexpr uint8_t BTBB_IS_AFH            	= 11;
+constexpr uint8_t BTBB_LOOKS_LIKE_AFH    	= 12;
+constexpr uint8_t BTBB_IS_ALIASED        	= 13;
+constexpr uint8_t BTBB_FOLLOWING         	= 14;
 
 /* Payload modulation */
-#define BTBB_MOD_GFSK              0x00
-#define BTBB_MOD_PI_OVER_2_DQPSK   0x01
-#define BTBB_MOD_8DPSK             0x02
+constexpr uint8_t BTBB_MOD_GFSK             = 0x00;
+constexpr uint8_t BTBB_MOD_PI_OVER_2_DQPSK  = 0x01;
+constexpr uint8_t BTBB_MOD_8DPSK            = 0x02;
 
 /* Transport types */
-#define BTBB_TRANSPORT_ANY     0x00
-#define BTBB_TRANSPORT_SCO     0x01
-#define BTBB_TRANSPORT_ESCO    0x02
-#define BTBB_TRANSPORT_ACL     0x03
-#define BTBB_TRANSPORT_CSB     0x04
+constexpr uint8_t BTBB_TRANSPORT_ANY     	= 0x00;
+constexpr uint8_t BTBB_TRANSPORT_SCO     	= 0x01;
+constexpr uint8_t BTBB_TRANSPORT_ESCO    	= 0x02;
+constexpr uint8_t BTBB_TRANSPORT_ACL     	= 0x03;
+constexpr uint8_t BTBB_TRANSPORT_CSB     	= 0x04;
 
 #ifdef __cplusplus
 extern "C"
@@ -70,7 +70,7 @@ typedef struct btbb_packet btbb_packet;
  * packets. Even a limit of 5 results in a syndrome table of several
  * hundred MB and lots of noise. For embedded targets, a value of 2 is
  * reasonable. */
-int btbb_init(int max_ac_errors);
+int32_t btbb_init(int32_t max_ac_errors);
 
 const char* btbb_get_release(void);
 const char* btbb_get_version(void);
@@ -87,16 +87,17 @@ void btbb_packet_unref(btbb_packet *pkt);
  * packet was found, returns a negative number. If LAP_ANY was
  * specified, fills lap. 'ac_errors' must be set as an input, replaced
  * by actual number of errors on output. */
-int btbb_find_ac(char *stream,
-	       int search_length,
+int32_t btbb_find_ac(char *stream,
+		int32_t search_length,
 	       uint32_t lap,
-	       int max_ac_errors,
+		int32_t max_ac_errors,
 	       btbb_packet **pkt);
-#define LAP_ANY 0xffffffffUL
-#define UAP_ANY 0xff
 
-void btbb_packet_set_flag(btbb_packet *pkt, int flag, int val);
-int btbb_packet_get_flag(const btbb_packet *pkt, int flag);
+constexpr uint32_t 	LAP_ANY = 0xfffffffful;
+constexpr uint8_t 	UAP_ANY = 0xff;
+
+void btbb_packet_set_flag(btbb_packet *pkt, int32_t flag, int32_t val);
+int32_t btbb_packet_get_flag(const btbb_packet *pkt, int32_t flag);
 
 uint32_t btbb_packet_get_lap(const btbb_packet *pkt);
 void btbb_packet_set_uap(btbb_packet *pkt, uint8_t uap);
@@ -114,21 +115,21 @@ uint32_t btbb_packet_get_clkn(const btbb_packet *pkt);
 uint32_t btbb_packet_get_header_packed(const btbb_packet* pkt);
 
 void btbb_packet_set_data(btbb_packet *pkt,
-			  char *syms,      // Symbol data
-			  int length,      // Number of symbols
-			  uint8_t channel, // Bluetooth channel 0-79
-			  uint32_t clkn);  // 312.5us clock (CLK27-0)
+		char *syms,      // Symbol data
+		int32_t length,      // Number of symbols
+		uint8_t channel, // Bluetooth channel 0-79
+		uint32_t clkn);  // 312.5us clock (CLK27-0)
 
 /* Get a pointer to packet symbols. */
 const char *btbb_get_symbols(const btbb_packet* pkt);
 
-int btbb_packet_get_payload_length(const btbb_packet* pkt);
+uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt);
 
 /* Get a pointer to payload. */
 const char *btbb_get_payload(const btbb_packet* pkt);
 
 /* Pack the payload in to bytes */
-int btbb_get_payload_packed(const btbb_packet* pkt, char *dst);
+uint32_t btbb_get_payload_packed(const btbb_packet* pkt, char *dst);
 
 uint8_t btbb_packet_get_type(const btbb_packet* pkt);
 uint8_t btbb_packet_get_lt_addr(const btbb_packet* pkt);
@@ -139,16 +140,16 @@ uint8_t btbb_packet_get_hec(const btbb_packet *pkt);
 uint64_t btbb_gen_syncword(const int LAP);
 
 /* decode the packet header */
-int btbb_decode_header(btbb_packet* pkt);
+int32_t btbb_decode_header(btbb_packet* pkt);
 
 /* decode the packet header */
-int btbb_decode_payload(btbb_packet* pkt);
+int32_t btbb_decode_payload(btbb_packet* pkt);
 
 /* print packet information */
 void btbb_print_packet(const btbb_packet* pkt);
 
 /* check to see if the packet has a header */
-int btbb_header_present(const btbb_packet* pkt);
+int32_t btbb_header_present(const btbb_packet* pkt);
 
 /* Packet queue (linked list) */
 typedef struct pkt_queue {
@@ -173,11 +174,11 @@ uint32_t btbb_piconet_get_lap(const btbb_piconet *pn);
 uint16_t btbb_piconet_get_nap(const btbb_piconet *pn);
 uint64_t btbb_piconet_get_bdaddr(const btbb_piconet *pn);
 
-int btbb_piconet_get_clk_offset(const btbb_piconet *pn);
-void btbb_piconet_set_clk_offset(btbb_piconet *pn, int clk_offset);
+int32_t btbb_piconet_get_clk_offset(const btbb_piconet *pn);
+void btbb_piconet_set_clk_offset(btbb_piconet *pn, int32_t clk_offset);
 
-void btbb_piconet_set_flag(btbb_piconet *pn, int flag, int val);
-int btbb_piconet_get_flag(const btbb_piconet *pn, int flag);
+void btbb_piconet_set_flag(btbb_piconet *pn, int32_t flag, int32_t val);
+int32_t btbb_piconet_get_flag(const btbb_piconet *pn, int32_t flag);
 
 uint8_t btbb_piconet_set_channel_seen(btbb_piconet *pn, uint8_t channel);
 uint8_t btbb_piconet_clear_channel_seen(btbb_piconet *pn, uint8_t channel);
@@ -186,10 +187,10 @@ void btbb_piconet_set_afh_map(btbb_piconet *pn, uint8_t *afh_map);
 uint8_t *btbb_piconet_get_afh_map(btbb_piconet *pn);
 
 /* Extract as much information (LAP/UAP/CLK) as possible from received packet */
-int btbb_process_packet(btbb_packet *pkt, btbb_piconet *pn);
+int32_t btbb_process_packet(btbb_packet *pkt, btbb_piconet *pn);
 
 /* use packet headers to determine UAP */
-int btbb_uap_from_header(btbb_packet *pkt, btbb_piconet *pn);
+int32_t btbb_uap_from_header(btbb_packet *pkt, btbb_piconet *pn);
 
 /* Print hexadecimal representation of the derived AFH map */
 void btbb_print_afh_map(btbb_piconet *pn);
@@ -227,10 +228,10 @@ int btbb_pcapng_close(btbb_pcapng_handle * h);
 
 
 /* BLE support */
-typedef struct lell_packet lell_packet;
+using lell_packet = struct lell_packet;
 /* decode and allocate LE packet */
 void lell_allocate_and_decode(const uint8_t *stream, uint16_t phys_channel, uint32_t clk100ns, lell_packet **pkt);
-lell_packet *lell_packet_new(void);
+lell_packet * lell_packet_new();
 void lell_packet_ref(lell_packet *pkt);
 void lell_packet_unref(lell_packet *pkt);
 uint32_t lell_get_access_address(const lell_packet *pkt);

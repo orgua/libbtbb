@@ -1,4 +1,4 @@
-/* -*- c -*- */
+/* -*- c++ -*- */
 /*
  * Copyright 2007 - 2013 Dominic Spill, Michael Ossmann, Will Code
  *
@@ -21,33 +21,39 @@
  */
 #ifndef INCLUDED_BLUETOOTH_PACKET_H
 #define INCLUDED_BLUETOOTH_PACKET_H
-#include "btbb.h"
+#include "btbb.hpp"
 
 /* maximum number of symbols */
-#define MAX_SYMBOLS 3125
+constexpr uint16_t 	MAX_SYMBOLS 	= 3125;
 
 /* maximum number of payload bits */
-#define MAX_PAYLOAD_LENGTH 2744
+constexpr uint16_t 	MAX_PAYLOAD_LENGTH = 2744;
 
 /* minimum header bit errors to indicate that this is an ID packet */
-#define ID_THRESHOLD 5
+constexpr uint8_t 	ID_THRESHOLD 	= 5;
 
-#define PACKET_TYPE_NULL 0
-#define PACKET_TYPE_POLL 1
-#define PACKET_TYPE_FHS 2
-#define PACKET_TYPE_DM1 3
-#define PACKET_TYPE_DH1 4
-#define PACKET_TYPE_HV1 5
-#define PACKET_TYPE_HV2 6
-#define PACKET_TYPE_HV3 7
-#define PACKET_TYPE_DV 8
-#define PACKET_TYPE_AUX1 9
-#define PACKET_TYPE_DM3 10
-#define PACKET_TYPE_DH3 11
-#define PACKET_TYPE_EV4 12
-#define PACKET_TYPE_EV5 13
-#define PACKET_TYPE_DM5 14
-#define PACKET_TYPE_DH5 15
+constexpr uint8_t 	PACKET_TYPE_NULL 	= 0;
+constexpr uint8_t 	PACKET_TYPE_POLL 	= 1;
+constexpr uint8_t 	PACKET_TYPE_FHS 	= 2;
+constexpr uint8_t 	PACKET_TYPE_DM1 	= 3;
+constexpr uint8_t 	PACKET_TYPE_DH1 	= 4;
+constexpr uint8_t 	PACKET_TYPE_HV1 	= 5;
+constexpr uint8_t 	PACKET_TYPE_HV2 	= 6;
+constexpr uint8_t 	PACKET_TYPE_HV3 	= 7;
+constexpr uint8_t 	PACKET_TYPE_DV 		= 8;
+constexpr uint8_t 	PACKET_TYPE_AUX1 	= 9;
+constexpr uint8_t 	PACKET_TYPE_DM3 	= 10;
+constexpr uint8_t 	PACKET_TYPE_DH3 	= 11;
+constexpr uint8_t 	PACKET_TYPE_EV4 	= 12;
+constexpr uint8_t 	PACKET_TYPE_EV5 	= 13;
+constexpr uint8_t 	PACKET_TYPE_DM5 	= 14;
+constexpr uint8_t 	PACKET_TYPE_DH5 	= 15;
+
+template<typename DType>
+constexpr DType min(const DType value_A, const DType value_B)
+{
+	return ((value_A < value_B) ? value_A : value_B);
+}
 
 struct btbb_packet {
 
@@ -70,9 +76,8 @@ struct btbb_packet {
 	/* packet header, one bit per char */
 	char packet_header[18];
 
-	/* number of payload header bytes: 0, 1, 2, or -1 for
-	 * unknown. payload is one bit per char. */
-	int payload_header_length;
+	/* number of payload header bytes: 0, 1, 2. payload is one bit per char. */
+	uint32_t payload_header_length; // TODO: should be unsigned
 	char payload_header[16];
 
 	/* LLID field of payload header (2 bits) */
@@ -88,7 +93,7 @@ struct btbb_packet {
 	* (the length indicated in the payload header's length field)
 	* plus payload_header_length plus 2 bytes CRC (if present).
 	*/
-	int payload_length;
+	uint32_t payload_length;
 
 	/* The actual payload data in host format
 	* Ready for passing to wireshark

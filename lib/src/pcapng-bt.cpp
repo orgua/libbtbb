@@ -20,16 +20,19 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "btbb.h"
-#include "bluetooth_le_packet.h"
-#include "bluetooth_packet.h"
-#include "pcapng-bt.h"
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+
+
+#include "btbb.hpp"
+#include "bluetooth_le_packet.hpp"
+#include "bluetooth_packet.hpp"
+#include "pcapng-bt.hpp"
+
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 
 /* generic section options indicating libbtbb */
 const struct {
@@ -131,7 +134,7 @@ int btbb_pcapng_create_file( const char *filename,
 			     btbb_pcapng_handle ** ph )
 {
 	int retval = PCAPNG_OK;
-	PCAPNG_HANDLE * handle = malloc( sizeof(PCAPNG_HANDLE) );
+	PCAPNG_HANDLE * handle = new PCAPNG_HANDLE; // TODO: forbid all "new"
 	if (handle) {
 		const option_header * popt = NULL;
 		struct {
@@ -238,10 +241,10 @@ int btbb_pcapng_append_packet(btbb_pcapng_handle * h, const uint64_t ns,
 		((noisedbm < sigdbm) ? BREDR_NOISEPOWER_VALID : 0) |
 		((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : 0) |
 		((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : 0);
-	int caplen = btbb_packet_get_payload_length(pkt);
+	uint32_t caplen = btbb_packet_get_payload_length(pkt);
 	char payload_bytes[caplen];
 	btbb_get_payload_packed( pkt, &payload_bytes[0] );
-	caplen = MIN(BREDR_MAX_PAYLOAD, caplen);
+	caplen = min(static_cast<uint32_t>(BREDR_MAX_PAYLOAD), caplen);
 	pcapng_bredr_packet pcapng_pkt;
 	assemble_pcapng_bredr_packet( &pcapng_pkt,
 				      0,
@@ -375,9 +378,9 @@ lell_pcapng_create_file(const char *filename, const char *interface_desc,
 			lell_pcapng_handle ** ph)
 {
 	int retval = PCAPNG_OK;
-	PCAPNG_HANDLE * handle = malloc( sizeof(PCAPNG_HANDLE) );
+	PCAPNG_HANDLE * handle = new PCAPNG_HANDLE;
 	if (handle) {
-		const option_header * popt = NULL;
+		const option_header * popt = nullptr;
 		struct {
 			option_header header;
 			char desc[256];

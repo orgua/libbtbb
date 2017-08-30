@@ -24,9 +24,9 @@
  *
  */
 
-#include <stdint.h>
+#include <cstdint>
 
-const char *bt_compidtostr(uint16_t compid)
+const char *bt_compidtostr(const uint16_t compid)
 {
 	switch (compid) {
 	case 0:

@@ -23,21 +23,22 @@
 #ifndef INCLUDED_BLUETOOTH_LE_PACKET_H
 #define INCLUDED_BLUETOOTH_LE_PACKET_H
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
-#define MAX_LE_SYMBOLS 64
+constexpr uint8_t 	MAX_LE_SYMBOLS 	= 64;
 
-#define LE_ADV_AA 0x8E89BED6
+constexpr uint32_t 	LE_ADV_AA 		= 0x8E89BED6ul;
 
-#define ADV_IND			0
-#define ADV_DIRECT_IND	1
-#define ADV_NONCONN_IND	2
-#define SCAN_REQ		3
-#define SCAN_RSP		4
-#define CONNECT_REQ		5
-#define ADV_SCAN_IND	6
+constexpr uint8_t 	ADV_IND			= 0;
+constexpr uint8_t 	ADV_DIRECT_IND	= 1;
+constexpr uint8_t 	ADV_NONCONN_IND	= 2;
+constexpr uint8_t 	SCAN_REQ		= 3;
+constexpr uint8_t 	SCAN_RSP		= 4;
+constexpr uint8_t 	CONNECT_REQ		= 5;
+constexpr uint8_t 	ADV_SCAN_IND	= 6;
+
 
 struct lell_packet {
 	// raw unwhitened bytes of packet, including access address
@@ -50,16 +51,16 @@ struct lell_packet {
 	uint8_t channel_k;
 
 	// number of symbols
-	int length;
+	uint32_t length;
 
 	uint32_t clk100ns;
 
 	// advertising packet header info
 	uint8_t adv_type;
-	int adv_tx_add;
-	int adv_rx_add;
+    int32_t adv_tx_add;
+    int32_t adv_rx_add;
 
-	unsigned access_address_offenses;
+    uint32_t access_address_offenses;
 	uint32_t refcount;
 
 	/* flags */

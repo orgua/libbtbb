@@ -22,8 +22,8 @@
 #ifndef PCAPNG_DOT_H
 #define PCAPNG_DOT_H
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 typedef struct __attribute__((packed)) {
 	uint16_t option_code;
@@ -31,8 +31,8 @@ typedef struct __attribute__((packed)) {
 	uint32_t option_value[0];
 } option_header;
 
-#define OPT_ENDOFOPT 0
-#define OPT_COMMENT  1
+constexpr uint8_t OPT_ENDOFOPT = 0;
+constexpr uint8_t OPT_COMMENT  = 1;
 
 typedef struct __attribute__((packed)) {
 	uint32_t block_type;
@@ -44,11 +44,11 @@ typedef struct __attribute__((packed)) {
 	option_header options[0];
 } section_header_block;
 
-#define SECTION_HEADER_BYTE_ORDER_MAGIC 0x1a2b3c4d
+constexpr uint32_t SECTION_HEADER_BYTE_ORDER_MAGIC = 0x1a2b3c4dul;
 
-#define SHB_HARDWARE 2
-#define SHB_OS       3
-#define SHB_USERAPPL 4
+constexpr uint8_t SHB_HARDWARE = 2;
+constexpr uint8_t SHB_OS       = 3;
+constexpr uint8_t SHB_USERAPPL = 4;
 
 typedef struct __attribute__((packed)) {
 	uint32_t block_type;
@@ -59,19 +59,19 @@ typedef struct __attribute__((packed)) {
 	option_header options[0];
 } interface_description_block;
 
-#define IF_NAME        2
-#define IF_DESCRIPTION 3
-#define IF_IPV4ADDR    4
-#define IF_IPV6ADDR    5
-#define IF_MACADDR     6
-#define IF_EUIADDR     7
-#define IF_SPEED       8
-#define IF_TSRESOL     9
-#define IF_TZONE       10
-#define IF_FILTER      11
-#define IF_OS          12
-#define IF_FCSLEN      13
-#define IF_TSOFFSET    14
+constexpr uint8_t IF_NAME        = 2;
+constexpr uint8_t IF_DESCRIPTION = 3;
+constexpr uint8_t IF_IPV4ADDR    = 4;
+constexpr uint8_t IF_IPV6ADDR    = 5;
+constexpr uint8_t IF_MACADDR     = 6;
+constexpr uint8_t IF_EUIADDR     = 7;
+constexpr uint8_t IF_SPEED       = 8;
+constexpr uint8_t IF_TSRESOL     = 9;
+constexpr uint8_t IF_TZONE       = 10;
+constexpr uint8_t IF_FILTER      = 11;
+constexpr uint8_t IF_OS          = 12;
+constexpr uint8_t IF_FCSLEN      = 13;
+constexpr uint8_t IF_TSOFFSET    = 14;
 
 typedef struct __attribute__((packed)) {
 	uint32_t block_type;
@@ -84,9 +84,9 @@ typedef struct __attribute__((packed)) {
 	uint32_t packet_data[0];
 } enhanced_packet_block;
 
-#define EPB_FLAGS     2
-#define EPB_HASH      3
-#define EPB_DROPCOUNT 4
+constexpr uint8_t EPB_FLAGS     = 2;
+constexpr uint8_t EPB_HASH      = 3;
+constexpr uint8_t EPB_DROPCOUNT = 4;
 
 typedef struct __attribute__((packed)) {
 	uint32_t block_type;
@@ -103,13 +103,13 @@ typedef struct __attribute__((packed)) {
 	uint32_t record_value[0];
 } name_resolution_block;
 
-#define NRES_ENDOFRECORD 0
-#define NRES_IP4RECORD   1
-#define NRES_IP6RECORD   2
+constexpr uint8_t NRES_ENDOFRECORD = 0;
+constexpr uint8_t NRES_IP4RECORD   = 1;
+constexpr uint8_t NRES_IP6RECORD   = 2;
 
-#define NS_DNSNAME    2
-#define NS_DNSIP4ADDR 3
-#define NS_DNSIP6ADDR 4
+constexpr uint8_t NS_DNSNAME    = 2;
+constexpr uint8_t NS_DNSIP4ADDR = 3;
+constexpr uint8_t NS_DNSIP6ADDR = 4;
 
 typedef struct __attribute__((packed)) {
 	uint32_t block_type;
@@ -120,20 +120,20 @@ typedef struct __attribute__((packed)) {
 	option_header options[0];
 } interface_statistics_block;
 
-#define ISB_STARTTIME    2
-#define ISB_ENDTIME      3
-#define ISB_IFRECV       4
-#define ISB_IFDROP       5
-#define ISB_FILTERACCEPT 6
-#define ISB_OSDROP       7
-#define ISB_USRDELIV     8
+constexpr uint8_t ISB_STARTTIME    = 2;
+constexpr uint8_t ISB_ENDTIME      = 3;
+constexpr uint8_t ISB_IFRECV       = 4;
+constexpr uint8_t ISB_IFDROP       = 5;
+constexpr uint8_t ISB_FILTERACCEPT = 6;
+constexpr uint8_t ISB_OSDROP       = 7;
+constexpr uint8_t ISB_USRDELIV     = 8;
 
-#define BLOCK_TYPE_INTERFACE            0x00000001
-#define BLOCK_TYPE_SIMPLE_PACKET        0x00000003
-#define BLOCK_TYPE_NAME_RESOLUTION      0x00000004
-#define BLOCK_TYPE_INTERFACE_STATISTICS 0x00000005
-#define BLOCK_TYPE_ENHANCED_PACKET      0x00000006
-#define BLOCK_TYPE_SECTION_HEADER       0x0a0d0d0a
+constexpr uint32_t BLOCK_TYPE_INTERFACE            = 0x00000001ul;
+constexpr uint32_t BLOCK_TYPE_SIMPLE_PACKET        = 0x00000003ul;
+constexpr uint32_t BLOCK_TYPE_NAME_RESOLUTION      = 0x00000004ul;
+constexpr uint32_t BLOCK_TYPE_INTERFACE_STATISTICS = 0x00000005ul;
+constexpr uint32_t BLOCK_TYPE_ENHANCED_PACKET      = 0x00000006ul;
+constexpr uint32_t BLOCK_TYPE_SECTION_HEADER       = 0x0a0d0d0aul;
 
 typedef struct {
 	int fd;

@@ -22,8 +22,8 @@
 #ifndef PCAPNG_BT_DOT_H
 #define PCAPNG_BT_DOT_H
 
-#include "pcap-common.h"
-#include "pcapng.h"
+#include "pcap-common.hpp"
+#include "pcapng.hpp"
 
 typedef struct __attribute__((packed)) {
 	uint32_t centre_freq;
@@ -37,7 +37,7 @@ typedef struct __attribute__((packed)) {
   bt_wideband_rf_info wideband_rf_info;
 } bt_wideband_rf_option;
 
-#define PCAPNG_BT_WIDEBAND_RF_INFO 0xd300
+constexpr uint16_t PCAPNG_BT_WIDEBAND_RF_INFO = 0xd300;
 
 /* --------------------------------- BR/EDR ----------------------------- */
 
@@ -69,8 +69,8 @@ typedef struct __attribute__((packed)) {
   bredr_clk_info clock_info;
 } bredr_clk_option;
 
-#define PCAPNG_BREDR_OPTION_BD_ADDR           0xd340
-#define PCAPNG_BREDR_OPTION_MASTER_CLOCK_INFO 0xd341
+constexpr uint16_t PCAPNG_BREDR_OPTION_BD_ADDR           = 0xd340;
+constexpr uint16_t PCAPNG_BREDR_OPTION_MASTER_CLOCK_INFO = 0xd341;
 
 /* --------------------------------- Low Energy ---------------------------- */
 
@@ -114,6 +114,6 @@ typedef struct __attribute__((packed)) {
   le_ll_connection_info connection_info;
 } le_ll_connection_info_option;
 
-#define PCAPNG_LE_LL_CONNECTION_INFO 0xd380
+constexpr uint16_t PCAPNG_LE_LL_CONNECTION_INFO = 0xd380;
 
 #endif /* PCAPNG_BT_DOT_H */

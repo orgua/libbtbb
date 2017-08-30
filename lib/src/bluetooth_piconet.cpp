@@ -20,11 +20,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "bluetooth_packet.h"
-#include "bluetooth_piconet.h"
-#include "uthash.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include "bluetooth_packet.hpp"
+#include "bluetooth_piconet.hpp"
+#include "uthash.hpp"
+
+#include <cstdlib>
+#include <cstdio>
 
 int perm_table_initialized = 0;
 char perm_table[0x20][0x20][0x200];
@@ -397,7 +398,7 @@ void get_hop_pattern(btbb_piconet *pn)
 
 	if (s == NULL) {
 		gen_hop_pattern(pn);
-		s = malloc(sizeof(hopping_struct));
+		s = new hopping_struct;
 		s->key = key;
 		s->sequence = pn->sequence;
 		HASH_ADD(hh, hopping_map, key, 4, s);
@@ -811,7 +812,7 @@ typedef struct {
     UT_hash_handle hh;
 } survey_hash;
 
-static survey_hash *piconet_survey = NULL;
+static survey_hash *piconet_survey = nullptr;
 
 /* Check for existing piconets in survey results */
 btbb_piconet *get_piconet(uint32_t lap)
@@ -824,7 +825,7 @@ btbb_piconet *get_piconet(uint32_t lap)
 		pn = btbb_piconet_new();
 		btbb_init_piconet(pn, lap);
 
-		s = malloc(sizeof(survey_hash));
+		s = new survey_hash;
 		s->key = lap;
 		s->pn = pn;
 		HASH_ADD(hh, piconet_survey, key, 4, s);
@@ -836,13 +837,13 @@ btbb_piconet *get_piconet(uint32_t lap)
 
 /* Destructively iterate over survey results */
 btbb_piconet *btbb_next_survey_result() {
-	btbb_piconet *pn = NULL;
+	btbb_piconet *pn = nullptr;
 	survey_hash *tmp;
 
-	if (piconet_survey != NULL) {
+	if (piconet_survey != nullptr) {
 		pn = piconet_survey->pn;
 		tmp = piconet_survey;
-		piconet_survey = piconet_survey->hh.next;
+		piconet_survey = (survey_hash*) piconet_survey->hh.next; // todo: check if right
 		free(tmp);
 	}
 	return pn;

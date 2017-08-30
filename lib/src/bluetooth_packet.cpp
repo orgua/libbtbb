@@ -20,39 +20,38 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "bluetooth_packet.hpp"
+#include "uthash.hpp"
+#include "sw_check_tables.hpp"
 
-#include "bluetooth_packet.h"
-#include "uthash.h"
-#include "sw_check_tables.h"
-
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
 
 /* Maximum number of AC errors supported by library. Caller may
  * specify any value <= AC_ERROR_LIMIT in btbb_init(). */
-#define AC_ERROR_LIMIT 5
+constexpr uint8_t AC_ERROR_LIMIT    = 5;
 
 /* maximum number of bit errors for known syncwords */
-#define MAX_SYNCWORD_ERRS 5
+constexpr uint8_t MAX_SYNCWORD_ERRS = 5;
 
 /* maximum number of bit errors in  */
-#define MAX_BARKER_ERRORS 1
+constexpr uint8_t MAX_BARKER_ERRORS = 1;
 
 /* default codeword modified for PN sequence and barker code */
-#define DEFAULT_CODEWORD 0xb0000002c7820e7eULL
+constexpr uint64_t DEFAULT_CODEWORD = 0xb0000002c7820e7eULL;
 
 /* Default access code, used for calculating syndromes */
-#define DEFAULT_AC 0xcc7b7268ff614e1bULL
+constexpr uint64_t DEFAULT_AC       = 0xcc7b7268ff614e1bULL;
 
 /* index into whitening data array */
-static const uint8_t INDICES[] = {99, 85, 17, 50, 102, 58, 108, 45, 92, 62, 32, 118, 88, 11, 80, 2, 37, 69, 55, 8, 20, 40, 74, 114, 15, 106, 30, 78, 53, 72, 28, 26, 68, 7, 39, 113, 105, 77, 71, 25, 84, 49, 57, 44, 61, 117, 10, 1, 123, 124, 22, 125, 111, 23, 42, 126, 6, 112, 76, 24, 48, 43, 116, 0};
+static constexpr uint8_t INDICES[] = {99, 85, 17, 50, 102, 58, 108, 45, 92, 62, 32, 118, 88, 11, 80, 2, 37, 69, 55, 8, 20, 40, 74, 114, 15, 106, 30, 78, 53, 72, 28, 26, 68, 7, 39, 113, 105, 77, 71, 25, 84, 49, 57, 44, 61, 117, 10, 1, 123, 124, 22, 125, 111, 23, 42, 126, 6, 112, 76, 24, 48, 43, 116, 0};
 
 /* whitening data */
-static const uint8_t WHITENING_DATA[] = {1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1};
+static constexpr uint8_t WHITENING_DATA[] = {1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1};
 
 /* lookup table for barker code hamming distance */
-static const uint8_t BARKER_DISTANCE[] = {
+static constexpr uint8_t BARKER_DISTANCE[] = {
 	3,3,3,2,3,2,2,1,2,3,3,3,3,3,3,2,2,3,3,3,3,3,3,2,1,2,2,3,2,3,3,3,
 	3,2,2,1,2,1,1,0,3,3,3,2,3,2,2,1,3,3,3,2,3,2,2,1,2,3,3,3,3,3,3,2,
 	2,3,3,3,3,3,3,2,1,2,2,3,2,3,3,3,1,2,2,3,2,3,3,3,0,1,1,2,1,2,2,3,
@@ -70,7 +69,7 @@ static const char * const TYPE_NAMES[] = {
  * thanks to http://www.ee.unb.ca/cgi-bin/tervo/polygen.pl
  * modified for barker code
  */
-static const uint64_t sw_matrix[] = {
+static constexpr uint64_t sw_matrix[] = {
 	0xfe000002a0d1c014ULL, 0x01000003f0b9201fULL, 0x008000033ae40edbULL, 0x004000035fca99b9ULL,
 	0x002000036d5dd208ULL, 0x00100001b6aee904ULL, 0x00080000db577482ULL, 0x000400006dabba41ULL,
 	0x00020002f46d43f4ULL, 0x000100017a36a1faULL, 0x00008000bd1b50fdULL, 0x000040029c3536aaULL,
@@ -78,7 +77,7 @@ static const uint64_t sw_matrix[] = {
 	0x00000203ef526bd1ULL, 0x000001033511ab3cULL, 0x000000819a88d59eULL, 0x00000040cd446acfULL,
 	0x00000022a41aabb3ULL, 0x0000001390b5cb0dULL, 0x0000000b0ae27b52ULL, 0x0000000585713da9ULL};
 
-static const uint64_t barker_correct[] = {
+static constexpr uint64_t barker_correct[] = {
 	0xb000000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL,
 	0x4e00000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL, 0x4e00000000000000ULL,
 	0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL, 0x4e00000000000000ULL,
@@ -112,7 +111,7 @@ static const uint64_t barker_correct[] = {
 	0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL,
 	0xb000000000000000ULL, 0xb000000000000000ULL, 0xb000000000000000ULL, 0x4e00000000000000ULL};
 
-static const uint64_t pn = 0x83848D96BBCC54FCULL;
+static constexpr uint64_t pn = 0x83848D96BBCC54FCULL;
 
 static const uint16_t fec23_gen_matrix[] = {
 	0x2c01, 0x5802, 0x1c04, 0x3808, 0x7010,
@@ -124,12 +123,12 @@ typedef struct {
     UT_hash_handle hh;
 } syndrome_struct;
 
-static syndrome_struct *syndrome_map = NULL;
+static syndrome_struct *syndrome_map = nullptr;
 
 static void add_syndrome(uint64_t syndrome, uint64_t error)
 {
 	syndrome_struct *s;
-	s = malloc(sizeof(syndrome_struct));
+	s = new syndrome_struct; // TODO: should be smartpointer
 	s->syndrome = syndrome;
 	s->error = error;
 
@@ -498,7 +497,7 @@ const char *btbb_get_symbols(const btbb_packet* pkt)
 	return (const char*) pkt->symbols;
 }
 
-int btbb_packet_get_payload_length(const btbb_packet* pkt)
+uint32_t btbb_packet_get_payload_length(const btbb_packet* pkt)
 {
 	return pkt->payload_length;
 }
@@ -508,7 +507,7 @@ const char *btbb_get_payload(const btbb_packet* pkt)
 	return (const char*) pkt->payload;
 }
 
-int btbb_get_payload_packed(const btbb_packet* pkt, char *dst)
+uint32_t btbb_get_payload_packed(const btbb_packet* pkt, char *dst)
 {
 	int i;
 	for(i=0;i<pkt->payload_length;i++)
@@ -773,7 +772,7 @@ static int payload_crc(btbb_packet* pkt)
 {
 	uint16_t crc;   /* CRC calculated from payload data */
 	uint16_t check; /* CRC supplied by packet */
-
+    assert(pkt->payload_length > 2);
 	crc = crcgen(pkt->payload, (pkt->payload_length - 2) * 8, pkt->UAP);
 	check = air_to_host16(&pkt->payload[(pkt->payload_length - 2) * 8], 16);
 
@@ -823,10 +822,10 @@ static int decode_payload_header(char *stream, int clock, int header_bytes, int 
 	if(header_bytes == 2)
 	{
 		if(size < 16)
-			return 0; //FIXME should throw exception
+			return 0; //FIXME should throw exception TODO
 		if(fec) {
 			if(size < 30)
-				return 0; //FIXME should throw exception
+				return 0; //FIXME should throw exception TODO
 			char *corrected = unfec23(stream, 16);
 			if (!corrected)
 				return 0;
@@ -839,10 +838,10 @@ static int decode_payload_header(char *stream, int clock, int header_bytes, int 
 		pkt->payload_length = air_to_host16(&pkt->payload_header[3], 10) + 4;
 	} else {
 		if(size < 8)
-			return 0; //FIXME should throw exception
+			return 0; //FIXME should throw exception TODO
 		if(fec) {
 			if(size < 15)
-				return 0; //FIXME should throw exception
+				return 0; //FIXME should throw exception TODO
 			char *corrected = unfec23(stream, 8);
 			if (!corrected)
 				return 0;
@@ -857,8 +856,8 @@ static int decode_payload_header(char *stream, int clock, int header_bytes, int 
 	/* Try to set the max payload length to a sensible value,
 	 * especially when using strange data
 	 */
-	int max_length = 0;
-	switch(pkt->packet_type) {
+	uint16_t max_length = 0;
+	switch(pkt->packet_type) { // TODO: can be optimized with LUT, in general - search for switch statements
 		case PACKET_TYPE_DM1:
 			max_length = 20;
 			break;
@@ -887,7 +886,7 @@ static int decode_payload_header(char *stream, int clock, int header_bytes, int 
 			max_length = 343;
 			break;
 	}
-	pkt->payload_length = MIN(pkt->payload_length, max_length);
+	pkt->payload_length = min(pkt->payload_length, static_cast<uint32_t>(max_length));
 	pkt->payload_llid = air_to_host8(&pkt->payload_header[0], 2);
 	pkt->payload_flow = air_to_host8(&pkt->payload_header[2], 1);
 	pkt->payload_header_length = header_bytes;
@@ -917,7 +916,7 @@ int DM(int clock, btbb_packet* pkt)
 			/* I don't think the length of the voice field ("synchronous data
 			 * field") is included in the length indicated by the payload
 			 * header in the data field ("asynchronous data field"), but I
-			 * could be wrong.
+			 * could be wrong. TODO
 			 */
 			max_length = 12;
 			break;

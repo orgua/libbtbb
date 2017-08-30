@@ -21,13 +21,13 @@
  */
 #ifndef INCLUDED_BLUETOOTH_PICONET_H
 #define INCLUDED_BLUETOOTH_PICONET_H
-#include "btbb.h"
+#include "btbb.hpp"
 
 /* maximum number of hops to remember */
-#define MAX_PATTERN_LENGTH 1000
+constexpr uint16_t MAX_PATTERN_LENGTH = 1000;
 
 /* number of channels in use */
-#define BT_NUM_CHANNELS 79
+constexpr uint8_t  BT_NUM_CHANNELS = 79;
 
 struct btbb_piconet {
 
@@ -99,10 +99,10 @@ struct btbb_piconet {
 };
 
 /* number of hops in the hopping sequence (i.e. number of possible values of CLK1-27) */
-#define SEQUENCE_LENGTH 134217728
+constexpr uint32_t SEQUENCE_LENGTH = 134217728ul;
 
 /* number of aliased channels received */
-#define ALIASED_CHANNELS 25
+constexpr uint8_t  ALIASED_CHANNELS = 25;
 
 /* do all the precalculation that can be done before knowing the address */
 void precalc(btbb_piconet *pnet);

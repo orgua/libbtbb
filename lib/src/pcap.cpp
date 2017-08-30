@@ -19,14 +19,17 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
-#include "bluetooth_le_packet.h"
-#include "bluetooth_packet.h"
-#include "btbb.h"
-#include "pcap-common.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+
+
+#include "bluetooth_le_packet.hpp"
+#include "bluetooth_packet.hpp"
+#include "btbb.hpp"
+#include "pcap-common.hpp"
+
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 typedef enum {
 	PCAP_OK = 0,
@@ -74,7 +77,7 @@ int
 btbb_pcap_create_file(const char *filename, btbb_pcap_handle ** ph)
 {
 	int retval = 0;
-	btbb_pcap_handle * handle = malloc( sizeof(btbb_pcap_handle) );
+	btbb_pcap_handle * handle = new btbb_pcap_handle;
 	if (handle) {
 		memset(handle, 0, sizeof(*handle));
 		handle->pcap_file = btbb_pcap_open(filename, DLT_BLUETOOTH_BREDR_BB,
@@ -182,7 +185,7 @@ btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns,
 		uint32_t caplen = (uint32_t) btbb_packet_get_payload_length(pkt);
 		uint8_t payload_bytes[caplen];
 		btbb_get_payload_packed( pkt, (char *) &payload_bytes[0] );
-		caplen = MIN(BREDR_MAX_PAYLOAD, caplen);
+		caplen = min(static_cast<uint32_t>(BREDR_MAX_PAYLOAD), caplen);
 		pcap_bredr_packet pcap_pkt;
 		assemble_pcapng_bredr_packet( &pcap_pkt,
 					      0,
@@ -233,7 +236,7 @@ static int
 lell_pcap_create_file_dlt(const char *filename, int dlt, lell_pcap_handle ** ph)
 {
 	int retval = 0;
-	lell_pcap_handle * handle = malloc( sizeof(lell_pcap_handle) );
+	lell_pcap_handle * handle = new lell_pcap_handle;
 	if (handle) {
 		memset(handle, 0, sizeof(*handle));
 		handle->pcap_file = btbb_pcap_open(filename, dlt, BREDR_MAX_PAYLOAD);
@@ -279,8 +282,7 @@ typedef struct {
 	uint8_t le_packet[LE_MAX_PAYLOAD];
 } pcap_le_packet;
 
-static void
-assemble_pcapng_le_packet( pcap_le_packet * pkt,
+static void assemble_pcapng_le_packet( pcap_le_packet * pkt,
 			   const uint32_t interface_id __attribute__((unused)),
 			   const uint64_t ns,
 			   const uint32_t caplen,
@@ -292,7 +294,7 @@ assemble_pcapng_le_packet( pcap_le_packet * pkt,
 			   const uint16_t flags,
 			   const uint8_t * lepkt )
 {
-	uint32_t incl_len = MIN(LE_MAX_PAYLOAD, caplen);
+	uint32_t incl_len = min(static_cast<uint32_t>(LE_MAX_PAYLOAD), caplen);
 
 	pkt->pcap_header.ts_sec  = ns / 1000000000ull;
 	pkt->pcap_header.ts_usec = ns % 1000000000ull;
@@ -385,8 +387,8 @@ lell_pcap_append_ppi_packet(lell_pcap_handle * h, const uint64_t ns,
 			sizeof(ppi_fieldheader_t) +
 			sizeof(ppi_btle_t);
 		uint16_t MHz = 2402 + 2*lell_get_channel_k(pkt);
-		unsigned packet_len = pkt->length + 4 + 2 + 3; // AA + header + CRC
-		unsigned incl_len   = MIN(LE_MAX_PAYLOAD, packet_len);
+		uint32_t packet_len = pkt->length + 4 + 2 + 3; // AA + header + CRC
+		uint32_t incl_len   = min(static_cast<uint32_t>(LE_MAX_PAYLOAD), packet_len);
 
 		pcap_pkt.pcap_header.ts_sec  = ns / 1000000000ull;
 		pcap_pkt.pcap_header.ts_usec = ns % 1000000000ull;
@@ -416,8 +418,7 @@ lell_pcap_append_ppi_packet(lell_pcap_handle * h, const uint64_t ns,
 	return -PCAP_INVALID_HANDLE;
 }
 
-int 
-lell_pcap_close(lell_pcap_handle *h)
+int lell_pcap_close(lell_pcap_handle *h)
 {
 	if (h && h->pcap_file) {
 		fclose(h->pcap_file);

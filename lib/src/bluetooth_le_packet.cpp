@@ -25,10 +25,12 @@
 #include "config.h"
 #endif
 
-#include "btbb.h"
-#include "bluetooth_le_packet.h"
-#include <ctype.h>
-#include <string.h>
+#include "btbb.hpp"
+#include "bluetooth_le_packet.hpp"
+
+#include <cctype>
+#include <cstring>
+#include <string>
 
 /* company identifier lookup */
 const char *bt_compidtostr(uint16_t compid);
@@ -58,20 +60,18 @@ static const char *FLAGS[] = {
 // count of objects in an array, shamelessly stolen from Chrome
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
-static uint8_t count_bits(uint32_t n)
+static uint8_t count_bits(const uint32_t value)
 {
-	uint8_t i = 0;
-	for (i = 0; n != 0; i++)
-		n &= n - 1;
+	uint32_t value_ = value;
+    uint8_t i = 0;
+	for (; value_ != 0; i++)
+        value_ &= value_ - 1;
 	return i;
 }
 
-static int aa_access_channel_off_by_one(const uint32_t aa) {
-	int retval = 0;
-	if(count_bits(aa ^ LE_ADV_AA) == 1) {
-		retval = 1;
-	}
-	return retval;
+static uint8_t aa_access_channel_off_by_one(const uint32_t aa)
+{
+	return static_cast<uint8_t>((count_bits(aa ^ LE_ADV_AA) == 1) ? 1 : 0);
 }
 
 /*
@@ -97,12 +97,9 @@ static int aa_access_channel_off_by_one(const uint32_t aa) {
  *  - It shall have no more than 24 transitions.
  *  - It shall have a minimum of two transitions in the most significant six bits.
  */
-static int aa_data_channel_offenses(const uint32_t aa) {
-	int retval = 0, transitions = 0;
-	unsigned shift, odd = (unsigned) (aa & 1);
-	uint8_t aab3, aab2, aab1, aab0 = (uint8_t) (aa & 0xff);
-
-	const uint8_t EIGHT_BIT_TRANSITIONS_EVEN[256] = {
+static uint32_t aa_data_channel_offenses(const uint32_t aa)
+{
+	constexpr uint8_t EIGHT_BIT_TRANSITIONS_EVEN[256] = {
 		0, 2, 2, 2, 2, 4, 2, 2, 2, 4, 4, 4, 2, 4, 2, 2,
 		2, 4, 4, 4, 4, 6, 4, 4, 2, 4, 4, 4, 2, 4, 2, 2,
 		2, 4, 4, 4, 4, 6, 4, 4, 4, 6, 6, 6, 4, 6, 4, 4,
@@ -121,7 +118,7 @@ static int aa_data_channel_offenses(const uint32_t aa) {
 		1, 3, 3, 3, 3, 5, 3, 3, 1, 3, 3, 3, 1, 3, 1, 1
 	};
 
-	const uint8_t EIGHT_BIT_TRANSITIONS_ODD[256] = {
+	constexpr uint8_t EIGHT_BIT_TRANSITIONS_ODD[256] = {
 		1, 1, 3, 1, 3, 3, 3, 1, 3, 3, 5, 3, 3, 3, 3, 1,
 		3, 3, 5, 3, 5, 5, 5, 3, 3, 3, 5, 3, 3, 3, 3, 1,
 		3, 3, 5, 3, 5, 5, 5, 3, 5, 5, 7, 5, 5, 5, 5, 3,
@@ -140,27 +137,30 @@ static int aa_data_channel_offenses(const uint32_t aa) {
 		2, 2, 4, 2, 4, 4, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0
 	};
 
-	transitions += (odd ? EIGHT_BIT_TRANSITIONS_ODD[aab0] : EIGHT_BIT_TRANSITIONS_EVEN[aab0] );
-	odd = (unsigned) (aab0 & 0x80);
-	aab1 = (uint8_t) (aa >> 8);
-	transitions += (odd ? EIGHT_BIT_TRANSITIONS_ODD[aab1] : EIGHT_BIT_TRANSITIONS_EVEN[aab1] );
-	odd = (unsigned) (aab1 & 0x80);
-	aab2 = (uint8_t) (aa >> 16);
-	transitions += (odd ? EIGHT_BIT_TRANSITIONS_ODD[aab2] : EIGHT_BIT_TRANSITIONS_EVEN[aab2] );
-	odd = (unsigned) (aab2 & 0x80);
-	aab3 = (uint8_t) (aa >> 24);
-	transitions += (odd ? EIGHT_BIT_TRANSITIONS_ODD[aab3] : EIGHT_BIT_TRANSITIONS_EVEN[aab3] );
+    uint32_t transitions = 0;
+
+    const auto aab0 = static_cast<const uint8_t>(aa);
+	transitions += ((aab0 & 0x01) ? EIGHT_BIT_TRANSITIONS_ODD[aab0] : EIGHT_BIT_TRANSITIONS_EVEN[aab0] );
+
+    const auto aab1 = static_cast<const uint8_t>(aa >> 8);
+	transitions += ((aab0 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab1] : EIGHT_BIT_TRANSITIONS_EVEN[aab1] ); // TODO: check if this is really right, wy not aab1&0x01
+
+    const auto aab2 = static_cast<const uint8_t>(aa >> 16);
+	transitions += ((aab1 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab2] : EIGHT_BIT_TRANSITIONS_EVEN[aab2] );
+
+    const auto aab3 = static_cast<const uint8_t>(aa >> 24);
+	transitions += ((aab2 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab3] : EIGHT_BIT_TRANSITIONS_EVEN[aab3] );
+
+    uint32_t retval = 0;
 
 	/* consider excessive transitions as offenses */
-	if (transitions > 24) {
-		retval += (transitions - 24);
-	}
+	if (transitions > 24) retval += (transitions - 24);
 
-	const uint8_t AA_MSB6_ALLOWED[64] = {
+	constexpr uint8_t AA_MSB6_ALLOWED[64] = {
 		0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0
+		0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0 // TODO: can be optimized, negate
 	};
 
 	/* consider excessive transitions in the 6 MSBs as an offense */
@@ -174,11 +174,11 @@ static int aa_data_channel_offenses(const uint32_t aa) {
 	retval += aa_access_channel_off_by_one(aa);
 
 	/* inspect nibble triples for insufficient bit transitions */
-	for(shift=0; shift<=20; shift+=4) {
-		uint16_t twelvebits = (uint16_t) ((aa >> shift) & 0xfff);
+	for(uint8_t shift=0; shift<=20; shift+=4) {
+		const auto twelvebits = static_cast<const uint16_t>((aa >> shift) & 0xfff);
 		switch( twelvebits ) {
 			/* seven consecutive zeroes */
-		case 0x080: case 0x180: case 0x280: case 0x380: case 0x480:
+		case 0x080: case 0x180: case 0x280: case 0x380: case 0x480: // TODO: can be optimized with LUT
 		case 0x580: case 0x680: case 0x780: case 0x880: case 0x980:
 		case 0xa80: case 0xb80: case 0xc80: case 0xd80: case 0xe80:
 		case 0xf80: case 0x101: case 0x301: case 0x501: case 0x701:
@@ -241,42 +241,39 @@ static int aa_data_channel_offenses(const uint32_t aa) {
 	return retval;
 }
 
-lell_packet *
-lell_packet_new(void)
+lell_packet * lell_packet_new()
 {
-	lell_packet *pkt = (lell_packet *)calloc(1, sizeof(lell_packet));
+	lell_packet * const pkt = (lell_packet *)calloc(1, sizeof(lell_packet));
 	pkt->refcount = 1;
 	return pkt;
 }
 
-void
-lell_packet_ref(lell_packet *pkt)
+void lell_packet_ref(lell_packet * const pkt)
 {
 	pkt->refcount++;
 }
 
-void
-lell_packet_unref(lell_packet *pkt)
+void lell_packet_unref(lell_packet * const pkt)
 {
 	pkt->refcount--;
 	if (pkt->refcount == 0)
 		free(pkt);
 }
 
-static uint8_t le_channel_index(uint16_t phys_channel) {
-	uint8_t ret;
+static uint8_t le_channel_index(const uint16_t phys_channel) {
+	uint8_t value;
 	if (phys_channel == 2402) {
-		ret = 37;
-	} else if (phys_channel < 2426) { // 0 - 10
-		ret = (phys_channel - 2404) / 2;
+		value = 37;
+	} else if (phys_channel < 2426) {
+		value = static_cast<uint8_t>((phys_channel - 2404) / 2); // 0 - 10
 	} else if (phys_channel == 2426) {
-		ret = 38;
-	} else if (phys_channel < 2480) { // 11 - 36
-		ret = 11 + (phys_channel - 2428) / 2;
+		value = 38;
+	} else if (phys_channel < 2480) {
+		value = static_cast<uint8_t>(11 + (phys_channel - 2428) / 2); // 11 - 36
 	} else {
-		ret = 39;
+		value = 39;
 	}
-	return ret;
+	return value;
 }
 
 void lell_allocate_and_decode(const uint8_t *stream, uint16_t phys_channel, uint32_t clk100ns, lell_packet **pkt)
@@ -296,13 +293,13 @@ void lell_allocate_and_decode(const uint8_t *stream, uint16_t phys_channel, uint
 
 	if (lell_packet_is_data(*pkt)) {
 		// data PDU
-		(*pkt)->length = (*pkt)->symbols[5] & 0x1f;
+		(*pkt)->length = (*pkt)->symbols[5] & uint8_t(0x1f);
 		(*pkt)->access_address_offenses = aa_data_channel_offenses((*pkt)->access_address);
 		(*pkt)->flags.as_bits.access_address_ok = (*pkt)->access_address_offenses ? 0 : 1;
 	} else {
 		// advertising PDU
-		(*pkt)->length = (*pkt)->symbols[5] & 0x3f;
-		(*pkt)->adv_type = (*pkt)->symbols[4] & 0xf;
+		(*pkt)->length = (*pkt)->symbols[5] & uint8_t(0x3f);
+		(*pkt)->adv_type = (*pkt)->symbols[4] & uint8_t(0xf);
 		(*pkt)->adv_tx_add = (*pkt)->symbols[4] & 0x40 ? 1 : 0;
 		(*pkt)->adv_rx_add = (*pkt)->symbols[4] & 0x80 ? 1 : 0;
 		(*pkt)->flags.as_bits.access_address_ok = ((*pkt)->access_address == 0x8e89bed6);
@@ -345,34 +342,34 @@ const char * lell_get_adv_type_str(const lell_packet *pkt)
 	return "UNKNOWN";
 }
 
-static void _dump_addr(const char *name, const uint8_t *buf, int offset, int random) {
+static void _dump_addr(const std::string & name, const uint8_t *buf, int offset, int random) {
 	int i;
-	printf("    %s%02x", name, buf[offset+5]);
+	printf("    %s%02x", name.c_str(), buf[offset+5]); // TODO: replace printf
 	for (i = 4; i >= 0; --i)
 		printf(":%02x", buf[offset+i]);
 	printf(" (%s)\n", random ? "random" : "public");
 }
 
-static void _dump_8(const char *name, const uint8_t *buf, int offset) {
-	printf("    %s%02x (%d)\n", name, buf[offset], buf[offset]);
+static void _dump_8(const std::string & name, const uint8_t *buf, int offset) {
+	printf("    %s%02x (%d)\n", name.c_str(), buf[offset], buf[offset]);
 }
 
-static void _dump_16(const char *name, const uint8_t *buf, int offset) {
+static void _dump_16(const std::string & name, const uint8_t *buf, int offset) {
 	uint16_t val = buf[offset+1] << 8 | buf[offset];
-	printf("    %s%04x (%d)\n", name, val, val);
+	printf("    %s%04x (%d)\n", name.c_str(), val, val);
 }
 
-static void _dump_24(char *name, const uint8_t *buf, int offset) {
+static void _dump_24(const std::string & name, const uint8_t *buf, int offset) {
 	uint32_t val = buf[offset+2] << 16 | buf[offset+1] << 8 | buf[offset];
-	printf("    %s%06x\n", name, val);
+	printf("    %s%06x\n", name.c_str(), val);
 }
 
-static void _dump_32(const char *name, const uint8_t *buf, int offset) {
+static void _dump_32(const std::string & name, const uint8_t *buf, int offset) {
 	uint32_t val = buf[offset+3] << 24 |
 				   buf[offset+2] << 16 |
 				   buf[offset+1] << 8 |
 				   buf[offset+0];
-	printf("    %s%08x\n", name, val);
+	printf("    %s%08x\n", name.c_str(), val);
 }
 
 static void _dump_uuid(const uint8_t *uuid) {
@@ -600,9 +597,9 @@ void lell_print(const lell_packet *pkt)
 			case ADV_NONCONN_IND:
 			case ADV_SCAN_IND:
 				_dump_addr("AdvA:  ", pkt->symbols, 6, pkt->adv_tx_add);
-				if (pkt->length-6 > 0) {
+				if (pkt->length > 6) {
 					printf("    AdvData:");
-					for (i = 0; i < pkt->length - 6; ++i)
+					for (i = 0; i + 6 < pkt->length ; ++i)
 						printf(" %02x", pkt->symbols[12+i]);
 					printf("\n");
 					_dump_scan_rsp_data(&pkt->symbols[12], pkt->length-6);
@@ -619,7 +616,7 @@ void lell_print(const lell_packet *pkt)
 			case SCAN_RSP:
 				_dump_addr("AdvA:  ", pkt->symbols, 6, pkt->adv_tx_add);
 				printf("    ScanRspData:");
-				for (i = 0; i < pkt->length - 6; ++i)
+				for (i = 0; i + 6 < pkt->length; ++i)
 					printf(" %02x", pkt->symbols[12+i]);
 				printf("\n");
 				_dump_scan_rsp_data(&pkt->symbols[12], pkt->length-6);
@@ -650,12 +647,10 @@ void lell_print(const lell_packet *pkt)
 
 	printf("\n");
 	printf("    Data: ");
-	for (i = 6; i < 6 + pkt->length; ++i)
-		printf(" %02x", pkt->symbols[i]);
+	for (i = 6; i < 6 + pkt->length; ++i) printf(" %02x", pkt->symbols[i]);
 	printf("\n");
 
 	printf("    CRC:  ");
-	for (i = 0; i < 3; ++i)
-		printf(" %02x", pkt->symbols[6 + pkt->length + i]);
+	for (i = 0; i < 3; ++i) printf(" %02x", pkt->symbols[6 + pkt->length + i]);
 	printf("\n");
 }

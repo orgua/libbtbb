@@ -20,11 +20,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "pcapng.h"
+#include "pcapng.hpp"
 
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <string.h>
+#include <cstring>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -118,7 +118,7 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 		}
 
 		/* mmap the section header */
-		handle->section_header = mmap( NULL, handle->section_header_size, 
+		handle->section_header = (section_header_block*) mmap( nullptr, handle->section_header_size,
 					       PROT_READ|PROT_WRITE,
 					       MAP_SHARED,
 					       handle->fd, 0 );
@@ -133,12 +133,12 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 		}
 		else {
 			/* write the interface header */
-			const interface_description_block idb = {
-				.block_type = BLOCK_TYPE_INTERFACE,
-				.block_total_length = 0,
-				.link_type = link_type,
-				.snaplen = snaplen
-			};
+			interface_description_block idb; // TODO: init const
+			idb.block_type = BLOCK_TYPE_INTERFACE;
+			idb.block_total_length = 0;
+			idb.link_type = link_type;
+			idb.snaplen = snaplen;
+
 			handle->interface_description_size = sizeof( idb );
 			result = write( handle->fd, &idb, sizeof( idb ) );
 
@@ -177,11 +177,11 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 			}
 
 			/* mmap the interface description */
-			handle->interface_description = mmap( NULL, handle->interface_description_size, 
-							      PROT_READ|PROT_WRITE,
-							      MAP_SHARED,
-							      handle->fd,
-							      handle->section_header_size );
+			handle->interface_description = static_cast<interface_description_block*>(mmap( nullptr, handle->interface_description_size,
+                                              PROT_READ|PROT_WRITE,
+                                              MAP_SHARED,
+                                              handle->fd,
+                                              handle->section_header_size ));
 		}
 	}
 

@@ -62,22 +62,23 @@ inline uint64_t le64toh(uint64_t little_endian_64bits) { return little_endian_64
 /* --------------------------------- BR/EDR ----------------------------- */
 
 
-#define BREDR_DEWHITENED        0x0001
-#define BREDR_SIGPOWER_VALID    0x0002
-#define BREDR_NOISEPOWER_VALID  0x0004
-#define BREDR_PAYLOAD_DECRYPTED 0x0008
-#define BREDR_REFLAP_VALID      0x0010
-#define BREDR_PAYLOAD_PRESENT   0x0020
-#define BREDR_CHANNEL_ALIASED   0x0040
-#define BREDR_REFUAP_VALID      0x0080
-#define BREDR_HEC_CHECKED       0x0100
-#define BREDR_HEC_VALID         0x0200
-#define BREDR_CRC_CHECKED       0x0400
-#define BREDR_CRC_VALID         0x0800
-#define BREDR_MIC_CHECKED       0x1000
-#define BREDR_MIC_VALID         0x2000
+constexpr uint16_t 	BREDR_DEWHITENED        = 0x0001;
+constexpr uint16_t 	BREDR_SIGPOWER_VALID    = 0x0002;
+constexpr uint16_t 	BREDR_NOISEPOWER_VALID  = 0x0004;
+constexpr uint16_t 	BREDR_PAYLOAD_DECRYPTED = 0x0008;
+constexpr uint16_t 	BREDR_REFLAP_VALID      = 0x0010;
+constexpr uint16_t 	BREDR_PAYLOAD_PRESENT   = 0x0020;
+constexpr uint16_t 	BREDR_CHANNEL_ALIASED   = 0x0040;
+constexpr uint16_t 	BREDR_REFUAP_VALID      = 0x0080;
+constexpr uint16_t 	BREDR_HEC_CHECKED       = 0x0100;
+constexpr uint16_t 	BREDR_HEC_VALID         = 0x0200;
+constexpr uint16_t 	BREDR_CRC_CHECKED       = 0x0400;
+constexpr uint16_t 	BREDR_CRC_VALID         = 0x0800;
+constexpr uint16_t 	BREDR_MIC_CHECKED       = 0x1000;
+constexpr uint16_t 	BREDR_MIC_VALID         = 0x2000;
 
-#define BREDR_MAX_PAYLOAD       400
+constexpr uint16_t 	BREDR_MAX_PAYLOAD       = 400;
+
 #if !defined( DLT_BLUETOOTH_BREDR_BB )
 #define DLT_BLUETOOTH_BREDR_BB 255
 #endif
@@ -102,6 +103,7 @@ typedef struct __attribute__((packed)) _pcap_bluetooth_bredr_bb_header {
 #if !defined( DLT_BLUETOOTH_LE_LL_WITH_PHDR )
 #define DLT_BLUETOOTH_LE_LL_WITH_PHDR 256
 #endif
+
 typedef struct __attribute__((packed)) _pcap_bluetooth_le_ll_header {
         uint8_t rf_channel;
         int8_t signal_power;
@@ -112,18 +114,18 @@ typedef struct __attribute__((packed)) _pcap_bluetooth_le_ll_header {
         uint8_t le_packet[0];
 } pcap_bluetooth_le_ll_header;
 
-#define LE_DEWHITENED        0x0001
-#define LE_SIGPOWER_VALID    0x0002
-#define LE_NOISEPOWER_VALID  0x0004
-#define LE_PACKET_DECRYPTED  0x0008
-#define LE_REF_AA_VALID      0x0010
-#define LE_AA_OFFENSES_VALID 0x0020
-#define LE_CHANNEL_ALIASED   0x0040
-#define LE_CRC_CHECKED       0x0400
-#define LE_CRC_VALID         0x0800
-#define LE_MIC_CHECKED       0x1000
-#define LE_MIC_VALID         0x2000
+constexpr uint16_t 	LE_DEWHITENED        = 0x0001;
+constexpr uint16_t 	LE_SIGPOWER_VALID    = 0x0002;
+constexpr uint16_t 	LE_NOISEPOWER_VALID  = 0x0004;
+constexpr uint16_t 	LE_PACKET_DECRYPTED  = 0x0008;
+constexpr uint16_t 	LE_REF_AA_VALID      = 0x0010;
+constexpr uint16_t 	LE_AA_OFFENSES_VALID = 0x0020;
+constexpr uint16_t 	LE_CHANNEL_ALIASED   = 0x0040;
+constexpr uint16_t 	LE_CRC_CHECKED       = 0x0400;
+constexpr uint16_t 	LE_CRC_VALID         = 0x0800;
+constexpr uint16_t 	LE_MIC_CHECKED       = 0x1000;
+constexpr uint16_t 	LE_MIC_VALID         = 0x2000;
 
-#define LE_MAX_PAYLOAD       48
+constexpr uint8_t 	LE_MAX_PAYLOAD       = 48;
 
 #endif /* PCAP_COMMON_DOT_H */
