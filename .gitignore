@@ -5,6 +5,10 @@
 
 # Output directory
 build/
+cmake-build-debug/
+
+# Editor projectfiles
+.idea/
 
 # wireshark plugins
 CMakeCache.txt
