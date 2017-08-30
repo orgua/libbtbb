@@ -21,7 +21,11 @@
 #top level cmake project for libbtbb lib + tools
 
 cmake_minimum_required(VERSION 2.8)
+
+set(CMAKE_LEGACY_CYGWIN_WIN32 1) # Remove when CMake >= 2.8.4 is required
+
 project(libbtbb_all)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 set(INSTALL_DEFAULT_BINDIR "bin" CACHE STRING "Appended to CMAKE_INSTALL_PREFIX")
@@ -31,9 +35,10 @@ set(BUILD_STATIC_LIB OFF CACHE BOOL "Build static library")
 set(ENABLE_PYTHON ON CACHE BOOL "Build python tools")
 
 # Comment the following out for releases.
-set(CMAKE_C_FLAGS "$ENV{CFLAGS}" CACHE STRING "C Flags")
+#set(CMAKE_C_FLAGS "$ENV{CFLAGS}" CACHE STRING "C Flags")
 
 add_subdirectory(lib)
+
 if(ENABLE_PYTHON)
 	add_subdirectory(python)
 endif()
