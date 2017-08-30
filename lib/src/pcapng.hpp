@@ -25,10 +25,11 @@
 #include <cstdint>
 #include <cstdio>
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((packed)) OptHdr {
 	uint16_t option_code;
 	uint16_t option_length;
-	uint32_t option_value[0];
+	//uint32_t option_value[0];
+	//explicit constexpr OptHdr(const uint16_t code, const uint16_t length) : option_code(code), option_length(length) {}
 } option_header;
 
 constexpr uint8_t OPT_ENDOFOPT = 0;
@@ -41,7 +42,7 @@ typedef struct __attribute__((packed)) {
 	uint16_t major_version;
 	uint16_t minor_version;
 	uint64_t section_length;
-	option_header options[0];
+	//option_header options[0];
 } section_header_block;
 
 constexpr uint32_t SECTION_HEADER_BYTE_ORDER_MAGIC = 0x1a2b3c4dul;
@@ -56,7 +57,7 @@ typedef struct __attribute__((packed)) {
 	uint16_t link_type;
 	uint16_t reserved;
 	uint32_t snaplen;
-	option_header options[0];
+	//option_header options[0];
 } interface_description_block;
 
 constexpr uint8_t IF_NAME        = 2;
@@ -81,7 +82,7 @@ typedef struct __attribute__((packed)) {
 	uint32_t timestamp_low;
 	uint32_t captured_len;
 	uint32_t packet_len;
-	uint32_t packet_data[0];
+	//uint32_t packet_data[0];
 } enhanced_packet_block;
 
 constexpr uint8_t EPB_FLAGS     = 2;
@@ -92,7 +93,7 @@ typedef struct __attribute__((packed)) {
 	uint32_t block_type;
 	uint32_t block_total_length;
 	uint32_t packet_len;
-	uint32_t packet_data[0];
+	//uint32_t packet_data[0];
 } simple_packet_block;
 
 typedef struct __attribute__((packed)) {
@@ -100,7 +101,7 @@ typedef struct __attribute__((packed)) {
 	uint32_t block_total_length;
 	uint16_t record_type;
 	uint16_t record_length;
-	uint32_t record_value[0];
+	//uint32_t record_value[0];
 } name_resolution_block;
 
 constexpr uint8_t NRES_ENDOFRECORD = 0;
@@ -117,7 +118,7 @@ typedef struct __attribute__((packed)) {
 	uint32_t interface_id;
 	uint32_t timestamp_high;
 	uint32_t timestamp_low;
-	option_header options[0];
+	//option_header options[0];
 } interface_statistics_block;
 
 constexpr uint8_t ISB_STARTTIME    = 2;

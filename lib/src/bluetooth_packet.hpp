@@ -32,7 +32,7 @@ constexpr uint16_t 	MAX_PAYLOAD_LENGTH = 2744;
 static_assert(MAX_PAYLOAD_LENGTH * 8 <= std::numeric_limits<uint16_t>::max(), "implementation is limited!");
 
 /* minimum header bit errors to indicate that this is an ID packet */
-constexpr uint8_t 	ID_THRESHOLD 	= 5;
+constexpr uint8_t 	ID_THRESHOLD 	    = 5;
 
 constexpr uint8_t 	PACKET_TYPE_NULL 	= 0;
 constexpr uint8_t 	PACKET_TYPE_POLL 	= 1;

@@ -143,7 +143,7 @@ static uint32_t aa_data_channel_offenses(const uint32_t aa)
 	transitions += ((aab0 & 0x01) ? EIGHT_BIT_TRANSITIONS_ODD[aab0] : EIGHT_BIT_TRANSITIONS_EVEN[aab0] );
 
     const auto aab1 = static_cast<const uint8_t>(aa >> 8);
-	transitions += ((aab0 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab1] : EIGHT_BIT_TRANSITIONS_EVEN[aab1] ); // TODO: check if this is really right, wy not aab1&0x01
+	transitions += ((aab0 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab1] : EIGHT_BIT_TRANSITIONS_EVEN[aab1] ); // TODO: check if this is really right, wy not aab1&0x01, ask dominic
 
     const auto aab2 = static_cast<const uint8_t>(aa >> 16);
 	transitions += ((aab1 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab2] : EIGHT_BIT_TRANSITIONS_EVEN[aab2] );

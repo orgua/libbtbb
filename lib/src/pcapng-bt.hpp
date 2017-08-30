@@ -105,11 +105,12 @@ typedef struct __attribute__((packed)) {
       uint8_t ChM[5];
       uint8_t HopSCA;
     } fields;
-    uint8_t bytes[0];
+    uint8_t bytes[34];
   } pdu;
 } le_ll_connection_info;
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((packed))
+{
   option_header header;
   le_ll_connection_info connection_info;
 } le_ll_connection_info_option;

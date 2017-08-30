@@ -34,29 +34,39 @@
 #include <cstdio>
 #include <cassert>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /* generic section options indicating libbtbb */
 const struct {
-	struct {
-		option_header hdr;
-		char libname[8];
-	} libopt;
-	struct {
-		option_header hdr;
-	} termopt;
+    struct {
+        option_header hdr;
+        char libname[8];
+    } libopt;
+    struct {
+        option_header hdr;
+    } termopt;
 } libbtbb_section_options = {
-	.libopt = {
-		.hdr = {
-			.option_code = SHB_USERAPPL,
-			.option_length = 7 },
-		.libname = "libbtbb"
-	},
-	.termopt = {
-		.hdr = {
-			.option_code = OPT_ENDOFOPT,
-			.option_length = 0
-		}
-	}
+        .libopt = {
+                .hdr = {
+                        .option_code = SHB_USERAPPL,
+                        .option_length = 7},
+                .libname = "libbtbb"
+        },
+        .termopt = {
+                .hdr = {
+                        .option_code = OPT_ENDOFOPT,
+                        .option_length = 0
+                }
+        }
 };
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 static PCAPNG_RESULT
 check_and_fix_tsresol( PCAPNG_HANDLE * handle,
@@ -79,17 +89,16 @@ check_and_fix_tsresol( PCAPNG_HANDLE * handle,
 		}
 	}
 
-	if (!got_tsresol) {
-		const struct {
+	if (!got_tsresol)
+	{
+		struct {
 			option_header hdr;
 			uint8_t resol;
-		} tsresol = {
-			.hdr = {
-				.option_code = IF_TSRESOL,
-				.option_length = 1,
-			},
-			.resol = 9 /* 10^-9 is nanoseconds */
-		};
+		} tsresol;
+
+		tsresol.hdr.option_code = IF_TSRESOL;
+		tsresol.hdr.option_length = 1;
+		tsresol.resol = 9; /* 10^-9 is nanoseconds */
 
 		retval = pcapng_append_interface_option( handle, 
 							 (const option_header *) &tsresol );
@@ -140,11 +149,10 @@ int btbb_pcapng_create_file( const char *filename,
 		struct {
 			option_header header;
 			char desc[256];
-		} ifopt = {
-			.header = {
-				.option_code = IF_DESCRIPTION,
-			}
-		};
+		} ifopt;
+
+		ifopt.header.option_code = IF_DESCRIPTION;
+
 		if (interface_desc) {
 			(void) strncpy( &ifopt.desc[0], interface_desc, 256 );
 			ifopt.desc[255] = '\0';
@@ -242,8 +250,8 @@ int btbb_pcapng_append_packet(btbb_pcapng_handle * h, const uint64_t ns,
 		((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : uint8_t(0)) |
 		((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : uint8_t(0));
 	uint32_t caplen = btbb_packet_get_payload_length(pkt);
-	uint8_t payload_bytes[caplen];
-	btbb_get_payload_packed( pkt, &payload_bytes[0] );
+	uint8_t payload_bytes[MAX_PAYLOAD_LENGTH]; // TODO: not perfect, but good for now, maybe use a global temp_payload?
+	btbb_get_payload_packed( pkt, payload_bytes );
 	caplen = min(static_cast<uint32_t>(BREDR_MAX_PAYLOAD), caplen);
 	pcapng_bredr_packet pcapng_pkt;
 	assemble_pcapng_bredr_packet( &pcapng_pkt,
@@ -273,24 +281,18 @@ record_bd_addr_info( PCAPNG_HANDLE * handle,
 		     const uint8_t  uap_mask,
                      const uint8_t  nap_valid )
 {
-	const bredr_br_addr_option bdopt = {
-		.header = {
-			.option_code = PCAPNG_BREDR_OPTION_BD_ADDR,
-			.option_length = sizeof(bredr_br_addr_option),
-		},
-		.bd_addr_info = {
-			.bd_addr = {
-					static_cast<uint8_t>((bd_addr>>0)  & 0xff),
-					static_cast<uint8_t>((bd_addr>>8)  & 0xff),
-					static_cast<uint8_t>((bd_addr>>16) & 0xff),
-					static_cast<uint8_t>((bd_addr>>24) & 0xff),
-					static_cast<uint8_t>((bd_addr>>32) & 0xff),
-					static_cast<uint8_t>((bd_addr>>40) & 0xff)
-			},
-			.uap_mask = uap_mask,
-			.nap_valid = nap_valid,
-		}
-	};
+	bredr_br_addr_option bdopt;
+	bdopt.header.option_code = PCAPNG_BREDR_OPTION_BD_ADDR;
+	bdopt.header.option_length = sizeof(bredr_br_addr_option);
+	bdopt.bd_addr_info.bd_addr[0] = static_cast<uint8_t>((bd_addr>>0)  & 0xff);
+	bdopt.bd_addr_info.bd_addr[1] = static_cast<uint8_t>((bd_addr>>8)  & 0xff);
+	bdopt.bd_addr_info.bd_addr[2] = static_cast<uint8_t>((bd_addr>>16) & 0xff);
+	bdopt.bd_addr_info.bd_addr[3] = static_cast<uint8_t>((bd_addr>>24) & 0xff);
+	bdopt.bd_addr_info.bd_addr[4] = static_cast<uint8_t>((bd_addr>>32) & 0xff);
+	bdopt.bd_addr_info.bd_addr[5] = static_cast<uint8_t>((bd_addr>>40) & 0xff);
+	bdopt.bd_addr_info.uap_mask = uap_mask;
+	bdopt.bd_addr_info.nap_valid = nap_valid;
+
 	return pcapng_append_interface_option( handle,
 					       (const option_header *) &bdopt );
 }
@@ -309,18 +311,14 @@ record_bredr_master_clock_info( PCAPNG_HANDLE * handle,
 				const uint32_t clk,
 	                        const uint32_t clk_mask)
 {
-	const bredr_clk_option mcopt = {
-		.header = {
-			.option_code = PCAPNG_BREDR_OPTION_MASTER_CLOCK_INFO,
-			.option_length = sizeof(bredr_clk_option)
-		},
-		.clock_info = {
-			.ts = ns,
-			.lap_uap = static_cast<uint32_t>(htole32(bd_addr & 0xffffffff)),
-			.clk = clk,
-			.clk_mask = clk_mask
-		}
-	};
+	bredr_clk_option mcopt;
+	mcopt.header.option_code = PCAPNG_BREDR_OPTION_MASTER_CLOCK_INFO;
+	mcopt.header.option_length = sizeof(bredr_clk_option);
+	mcopt.clock_info.ts = ns;
+	mcopt.clock_info.lap_uap = static_cast<uint32_t>(htole32(bd_addr & 0xffffffff));
+	mcopt.clock_info.clk = clk;
+	mcopt.clock_info.clk_mask = clk_mask;
+
 	return pcapng_append_interface_option( handle,
 					       (const option_header *) &mcopt );
 }
@@ -373,9 +371,7 @@ create_le_capture_file_single_interface( PCAPNG_HANDLE * handle,
 	return retval;
 }
 
-int
-lell_pcapng_create_file(const char *filename, const char *interface_desc,
-			lell_pcapng_handle ** ph)
+int lell_pcapng_create_file(const char *filename, const char *interface_desc, lell_pcapng_handle ** ph)
 {
 	int retval = PCAPNG_OK;
 	PCAPNG_HANDLE * handle = new PCAPNG_HANDLE;
@@ -384,11 +380,10 @@ lell_pcapng_create_file(const char *filename, const char *interface_desc,
 		struct {
 			option_header header;
 			char desc[256];
-		} ifopt = {
-			.header = {
-				.option_code = IF_DESCRIPTION,
-			}
-		};
+		} ifopt;
+
+		ifopt.header.option_code = IF_DESCRIPTION;
+
 		if (interface_desc) {
 			(void) strncpy( &ifopt.desc[0], interface_desc, 256 );
 			ifopt.desc[255] = '\0';
@@ -498,15 +493,11 @@ record_le_connect_req_info( PCAPNG_HANDLE * handle,
 			    const uint64_t ns,
 			    const uint8_t * pdu )
 {
-	le_ll_connection_info_option cropt = {
-		.header = {
-			.option_code = PCAPNG_LE_LL_CONNECTION_INFO,
-			.option_length = sizeof(le_ll_connection_info_option)
-		},
-		.connection_info = {
-			.ns = ns
-		}
-	};
+	le_ll_connection_info_option cropt;
+	cropt.header.option_code = PCAPNG_LE_LL_CONNECTION_INFO;
+	cropt.header.option_length = sizeof(le_ll_connection_info_option);
+	cropt.connection_info.ns = ns;
+
 	(void) memcpy( &cropt.connection_info.pdu.bytes[0], pdu, 34 );
 	return pcapng_append_interface_option( handle,
 					       (const option_header *) &cropt );

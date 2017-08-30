@@ -805,7 +805,7 @@ static bool payload_crc(const btbb_packet * const pkt)
 uint16_t fhs(const uint32_t clock, btbb_packet* const pkt)
 {
 	/* skip the access code and packet header */
-	const uint8_t * const stream = pkt->symbols + 122;
+	const uint8_t * const stream = &pkt->symbols[122];
 	/* number of symbols remaining after access code and packet header */
 	const uint16_t size = pkt->length - uint8_t(122);
     assert(pkt->length > 122);
@@ -846,10 +846,10 @@ static int decode_payload_header(const uint8_t * const stream, uint32_t clock, c
 	if(header_bytes == 2)
 	{
 		if(size < 16)
-			return 0; //FIXME should throw exception TODO
+			return 0; //FIXME should throw exception
 		if(fec) {
 			if(size < 30)
-				return 0; //FIXME should throw exception TODO
+				return 0; //FIXME should throw exception
 			uint8_t *corrected = unfec23(stream, 16);
 			if (!corrected)
 				return 0;
@@ -862,10 +862,10 @@ static int decode_payload_header(const uint8_t * const stream, uint32_t clock, c
 		pkt->payload_length = air_to_host16(&pkt->payload_header[3], 10) + static_cast<uint8_t>(4);
 	} else {
 		if(size < 8)
-			return 0; //FIXME should throw exception TODO
+			return 0; //FIXME should throw exception
 		if(fec) {
 			if(size < 15)
-				return 0; //FIXME should throw exception TODO
+				return 0; //FIXME should throw exception
 			uint8_t * const corrected = unfec23(stream, 8);
 			if (!corrected)
 				return 0;
@@ -927,7 +927,7 @@ uint16_t DM(const uint32_t clock, btbb_packet * const pkt)
 	/* maximum payload length */
 	uint16_t max_length = 0;
 	/* skip the access code and packet header */
-	uint8_t * stream = pkt->symbols + uint8_t(122);
+	uint8_t * stream = &pkt->symbols[122];
 	/* number of symbols remaining after access code and packet header */
 	uint16_t size = pkt->length - uint8_t(122);
     assert(pkt->length > 122);
@@ -991,7 +991,7 @@ uint16_t DH(uint32_t clock, btbb_packet* const pkt)
 	/* maximum payload length */
 	uint16_t max_length = 0;
 	/* skip the access code and packet header */
-	uint8_t *stream = pkt->symbols + uint8_t(122);
+	uint8_t *stream = &pkt->symbols[122];
 	/* number of symbols remaining after access code and packet header */
 	uint16_t size = pkt->length - uint8_t(122);
     assert(pkt->length > 122);
@@ -1038,7 +1038,7 @@ uint16_t DH(uint32_t clock, btbb_packet* const pkt)
 uint16_t EV3(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* skip the access code and packet header */
-	const uint8_t * const stream = pkt->symbols + uint8_t(122);
+	const uint8_t * const stream = &pkt->symbols[122];
 
 	/* number of symbols remaining after access code and packet header */
 	const uint16_t size = pkt->length - uint8_t(122);
@@ -1067,7 +1067,7 @@ uint16_t EV3(const uint32_t clock, btbb_packet * const pkt)
 uint16_t EV4(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* skip the access code and packet header */
-	const uint8_t * const stream = pkt->symbols + 122;
+	const uint8_t * const stream = &pkt->symbols[122];
 
 	/* number of symbols remaining after access code and packet header */
 	uint16_t size = pkt->length - uint8_t(122);
@@ -1121,7 +1121,7 @@ uint16_t EV4(const uint32_t clock, btbb_packet * const pkt)
 uint16_t EV5(const uint32_t clock, btbb_packet * const pkt)
 {
 	/* skip the access code and packet header */
-	const uint8_t * const stream = pkt->symbols + 122;
+	const uint8_t * const stream = &pkt->symbols[122];
 
 	/* number of symbols remaining after access code and packet header */
 	const uint16_t size = pkt->length - uint8_t(122);
@@ -1152,7 +1152,7 @@ uint16_t EV5(const uint32_t clock, btbb_packet * const pkt)
 uint16_t HV(const uint32_t clock, btbb_packet * const pkt) // TODO: fix return of all
 {
 	/* skip the access code and packet header */
-    const uint8_t * const stream = pkt->symbols + 122;
+    const uint8_t * const stream = &pkt->symbols[122];
 	/* number of symbols remaining after access code and packet header */
 	const uint16_t size = pkt->length - uint8_t(122);
     assert(pkt->length > 122);
@@ -1202,7 +1202,7 @@ uint16_t HV(const uint32_t clock, btbb_packet * const pkt) // TODO: fix return o
 uint8_t try_clock(const uint32_t clock, btbb_packet* const pkt)
 {
 	/* skip 72 bit access code */
-	const uint8_t * const stream = pkt->symbols + 68;
+	const uint8_t * const stream = &pkt->symbols[68];
 	/* 18 bit packet header */
 	uint8_t header[18];
     uint8_t unwhitened[18];
@@ -1222,7 +1222,7 @@ uint8_t try_clock(const uint32_t clock, btbb_packet* const pkt)
 int btbb_decode_header(btbb_packet* pkt)
 {
 	/* skip 72 bit access code */
-	const uint8_t * const stream = pkt->symbols + 68;
+	const uint8_t * const stream = &pkt->symbols[68];
 	/* 18 bit packet header */
 	uint8_t header[18];
 	uint8_t UAP;
@@ -1396,7 +1396,7 @@ uint8_t * tun_format(btbb_packet* pkt)
 bool btbb_header_present(const btbb_packet* pkt) // TODO: a lot to do here, search for returns
 {
 	/* skip to last bit of sync word */
-	const uint8_t * stream = pkt->symbols + 63;
+	const uint8_t * stream = &pkt->symbols[63];
 
 	/* check that we have enough symbols */
 	if (pkt->length < 122)	return false;

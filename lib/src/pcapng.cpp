@@ -30,9 +30,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static option_header padopt = {
-	.option_code = 0xffff,
-};
+static option_header padopt = {.option_code = 0xFFFF, .option_length = 0};
 
 PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 			     const char * filename,
@@ -75,14 +73,14 @@ PCAPNG_RESULT pcapng_create( PCAPNG_HANDLE * handle,
 
 	if (retval == PCAPNG_OK) {
 		/* section header */
-		const section_header_block shb = {
-			.block_type = BLOCK_TYPE_SECTION_HEADER,
-			.block_total_length = 28,
-			.byte_order_magic = SECTION_HEADER_BYTE_ORDER_MAGIC,
-			.major_version = 1,
-			.minor_version = 0,
-			.section_length = (uint64_t) -1,
-		};
+		section_header_block shb; // TODO: was const, does it matter here?
+		shb.block_type = BLOCK_TYPE_SECTION_HEADER;
+		shb.block_total_length = 28;
+		shb.byte_order_magic = SECTION_HEADER_BYTE_ORDER_MAGIC;
+		shb.major_version = 1;
+		shb.minor_version = 0;
+		shb.section_length = (uint64_t) -1;
+
 		handle->section_header_size = sizeof( shb );
 		result = write( handle->fd, &shb, sizeof( shb ) );
 		/* write initial section options */

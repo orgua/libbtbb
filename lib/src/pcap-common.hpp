@@ -111,7 +111,7 @@ typedef struct __attribute__((packed)) _pcap_bluetooth_le_ll_header {
         uint8_t access_address_offenses;
         uint32_t ref_access_address;
         uint16_t flags;
-        uint8_t le_packet[0];
+        //uint8_t le_packet[0];
 } pcap_bluetooth_le_ll_header;
 
 constexpr uint16_t 	LE_DEWHITENED        = 0x0001;

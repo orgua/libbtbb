@@ -48,16 +48,16 @@ typedef struct __attribute__((packed)) pcap_hdr_s {
 	uint32_t network;        /* data link type */
 } pcap_hdr_t;
 
-FILE *btbb_pcap_open(const char *filename, uint32_t dlt, uint32_t snaplen) {
-	pcap_hdr_t pcap_header = {
-		.magic_number = 0xa1b23c4d,
-		.version_major = 2,
-		.version_minor = 4,
-		.thiszone = 0,
-		.sigfigs = 0,
-		.snaplen = snaplen,
-		.network = dlt,
-	};
+FILE *btbb_pcap_open(const char *filename, const uint32_t dlt, const uint32_t snaplen)
+{
+	pcap_hdr_t pcap_header;
+    pcap_header.magic_number = 0xa1b23c4d;
+    pcap_header.version_major = 2;
+    pcap_header.version_minor = 4;
+    pcap_header.thiszone = 0;
+    pcap_header.sigfigs = 0;
+    pcap_header.snaplen = snaplen;
+    pcap_header.network = dlt;
 
 	FILE *pcap_file = fopen(filename, "w");
 	if (pcap_file == nullptr) return nullptr;
@@ -181,8 +181,8 @@ int btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns,
 			((reflap != LAP_ANY) ? BREDR_REFLAP_VALID : uint16_t(0)) |
 			((refuap != UAP_ANY) ? BREDR_REFUAP_VALID : uint16_t(0));
 		uint32_t caplen = btbb_packet_get_payload_length(pkt);
-		uint8_t payload_bytes[caplen];
-		btbb_get_payload_packed( pkt, &payload_bytes[0] );
+		uint8_t payload_bytes[MAX_PAYLOAD_LENGTH]; // TODO: not perfect, but good for now, maybe use a global temp_payload?
+		btbb_get_payload_packed( pkt, payload_bytes );
 		caplen = min(static_cast<uint32_t>(BREDR_MAX_PAYLOAD), caplen);
 		pcap_bredr_packet pcap_pkt;
 		assemble_pcapng_bredr_packet( &pcap_pkt,
@@ -206,7 +206,7 @@ int btbb_pcap_append_packet(btbb_pcap_handle * h, const uint64_t ns,
 		btbb_pcap_dump(h->pcap_file, &pcap_pkt.pcap_header, (u_char *)&pcap_pkt.bredr_bb_header);
 		return 0;
 	}
-	return -PCAP_INVALID_HANDLE;
+	return -PCAP_INVALID_HANDLE; // TODO: why Minus?
 }
 
 int btbb_pcap_close(btbb_pcap_handle * h)
