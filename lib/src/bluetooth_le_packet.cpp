@@ -21,6 +21,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -99,7 +100,7 @@ static uint8_t aa_access_channel_off_by_one(const uint32_t aa)
  */
 static uint32_t aa_data_channel_offenses(const uint32_t aa)
 {
-	constexpr uint8_t EIGHT_BIT_TRANSITIONS_EVEN[256] = {
+	constexpr uint8_t EIGHT_BIT_TRANSITIONS_EVEN[256] = { // TODO: all magic arrays should be tested and with FN
 		0, 2, 2, 2, 2, 4, 2, 2, 2, 4, 4, 4, 2, 4, 2, 2,
 		2, 4, 4, 4, 4, 6, 4, 4, 2, 4, 4, 4, 2, 4, 2, 2,
 		2, 4, 4, 4, 4, 6, 4, 4, 4, 6, 6, 6, 4, 6, 4, 4,
@@ -143,7 +144,7 @@ static uint32_t aa_data_channel_offenses(const uint32_t aa)
 	transitions += ((aab0 & 0x01) ? EIGHT_BIT_TRANSITIONS_ODD[aab0] : EIGHT_BIT_TRANSITIONS_EVEN[aab0] );
 
     const auto aab1 = static_cast<const uint8_t>(aa >> 8);
-	transitions += ((aab0 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab1] : EIGHT_BIT_TRANSITIONS_EVEN[aab1] ); // TODO: check if this is really right, wy not aab1&0x01, ask dominic
+	transitions += ((aab0 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab1] : EIGHT_BIT_TRANSITIONS_EVEN[aab1] ); // TODO: code seems ok, but unittest would be nice
 
     const auto aab2 = static_cast<const uint8_t>(aa >> 16);
 	transitions += ((aab1 & 0x80) ? EIGHT_BIT_TRANSITIONS_ODD[aab2] : EIGHT_BIT_TRANSITIONS_EVEN[aab2] );
@@ -293,13 +294,13 @@ void lell_allocate_and_decode(const uint8_t *stream, uint16_t phys_channel, uint
 
 	if (lell_packet_is_data(*pkt)) {
 		// data PDU
-		(*pkt)->length = (*pkt)->symbols[5] & uint8_t(0x1f);
+		(*pkt)->length = (*pkt)->symbols[5] % uint8_t(32);
 		(*pkt)->access_address_offenses = aa_data_channel_offenses((*pkt)->access_address);
 		(*pkt)->flags.as_bits.access_address_ok = (*pkt)->access_address_offenses ? 0 : 1;
 	} else {
 		// advertising PDU
-		(*pkt)->length = (*pkt)->symbols[5] & uint8_t(0x3f);
-		(*pkt)->adv_type = (*pkt)->symbols[4] & uint8_t(0xf);
+		(*pkt)->length = (*pkt)->symbols[5] % uint8_t(64);
+		(*pkt)->adv_type = (*pkt)->symbols[4] % uint8_t(16);
 		(*pkt)->adv_tx_add = (*pkt)->symbols[4] & 0x40 ? 1 : 0;
 		(*pkt)->adv_rx_add = (*pkt)->symbols[4] & 0x80 ? 1 : 0;
 		(*pkt)->flags.as_bits.access_address_ok = ((*pkt)->access_address == 0x8e89bed6ul) ? 1 : 0;
@@ -637,7 +638,7 @@ void lell_print(const lell_packet *pkt)
 					printf(" %02x", pkt->symbols[34+i]);
 				printf("\n");
 
-				printf("    Hop: %d\n", pkt->symbols[39] & 0x1f);
+				printf("    Hop: %d\n", pkt->symbols[39] % 32);
 				printf("    SCA: %d, %s\n",
 						pkt->symbols[39] >> 5,
 						CONNECT_SCA[pkt->symbols[39] >> 5]);

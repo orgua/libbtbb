@@ -217,14 +217,14 @@ void precalc(btbb_piconet * const pn)
 void address_precalc(const uint32_t address, btbb_piconet * const pn)
 {
 	/* precalculate some of single_hop()/gen_hop()'s variables */
-	pn->a1 = static_cast<uint8_t>((address >> 23) & 0x1f);
-	pn->b = static_cast<uint8_t>((address >> 19) & 0x0f);
+	pn->a1 = static_cast<uint8_t>((address >> 23) % 32);
+	pn->b = static_cast<uint8_t>((address >> 19) % 16);
 	pn->c1 = static_cast<uint8_t>(((address >> 4) & 0x10) +
             ((address >> 3) & 0x08) +
             ((address >> 2) & 0x04) +
             ((address >> 1) & 0x02) +
             (address & 0x01));
-	pn->d1 = static_cast<uint16_t>((address >> 10) & 0x1ff);
+	pn->d1 = static_cast<uint16_t>((address >> 10) % 512);
 	pn->e = static_cast<uint8_t>(((address >> 7) & 0x40) +
             ((address >> 6) & 0x20) +
             ((address >> 5) & 0x10) +
@@ -329,7 +329,7 @@ static void gen_hops(btbb_piconet * const pn)
 
 					for (uint8_t x = 0; x < 0x20; x++) /* clock bits 2-6 */
                     {
-						const uint8_t perm_in = ((x + a) & uint8_t(0x1F)) ^ pn->b; // TODO: check if &0x1F is the same as %32
+						const uint8_t perm_in = ((x + a) % uint8_t(32)) ^ pn->b;
 
 						const uint8_t perm_out_0 = fast_perm(perm_in, c, d); /* y1 (clock bit 1) = 0, y2 = 0 */
                         const uint8_t perm_out_1 = fast_perm(perm_in, c_flipped, d); /* y1 (clock bit 1) = 1, y2 = 32 */
@@ -364,7 +364,7 @@ void gen_hop_pattern(btbb_piconet * const pn)
 	pn->sequence = new uint8_t[SEQUENCE_LENGTH];
 
 	precalc(pn);
-	address_precalc(((pn->UAP<<24) | pn->LAP) & 0xfffffff, pn); // TODO: ask dominic if this mask is correct
+	address_precalc(((pn->UAP<<24) | pn->LAP) & 0xfffffff, pn); // TODO: ok, correct, but masked again later, so not needed here
 	gen_hops(pn);
 
 	printf("Hopping sequence calculated.\n");
@@ -410,19 +410,19 @@ uint8_t single_hop(const uint32_t clock, btbb_piconet * const pn)
 	uint32_t f_dash;
 
 	/* following variable names used in section 2.6 of the spec */
-	const auto      x = static_cast<uint8_t>((clock >> 2) & 0x1f);
+	const auto      x = static_cast<uint8_t>((clock >> 2) % 32);
     const auto      y1 = static_cast<uint8_t>((clock >> 1) & 0x01);
     const uint8_t   y2 = y1 << 5;
 
-    const auto      a = static_cast<uint8_t>((pn->a1 ^ (clock >> 21)) & 0x1f);
+    const auto      a = static_cast<uint8_t>((pn->a1 ^ (clock >> 21)) % 32);
 	/* b is already defined */
-    const auto      c = static_cast<uint8_t>((pn->c1 ^ (clock >> 16)) & 0x1f);
-    const auto      d = static_cast<uint16_t>((pn->d1 ^ (clock >> 7)) & 0x1ff);
+    const auto      c = static_cast<uint8_t>((pn->c1 ^ (clock >> 16)) % 32);
+    const auto      d = static_cast<uint16_t>((pn->d1 ^ (clock >> 7)) % 512);
 	/* e is already defined */
 	const uint32_t  base_f = (clock >> 3) & 0x1fffff0;
 	const auto      f = static_cast<uint8_t>(base_f % BT_NUM_CHANNELS);
 
-	uint8_t perm = fast_perm(((x + a) & uint8_t(0x1F)) ^ pn->b, (y1 * uint8_t(0x1f)) ^ c, d); // TODO: check %32 &0x1F
+	uint8_t perm = fast_perm(((x + a) % uint8_t(32)) ^ pn->b, (y1 * uint8_t(32)) ^ c, d);
 	/* hop selection */
 	if(btbb_piconet_get_flag(pn, BTBB_IS_AFH))
     {
@@ -475,7 +475,7 @@ uint32_t btbb_init_hop_reversal(const bool aliased, btbb_piconet * const pn)
 	/* this can hold twice the approximate number of initial candidates */
 	pn->clock_candidates = new uint32_t[max_candidates];
 
-	const uint32_t clock = (pn->clk_offset + pn->first_pkt_time) & 0x3f; // TODO: aks dominic if this is right
+	const uint32_t clock = (pn->clk_offset + pn->first_pkt_time) & 0x3f; // TODO: seems to be right, but should be done in "init_canditates with %64
 	pn->num_candidates = init_candidates(pn->pattern_channels[0], clock, pn);
 	pn->winnowed = 0;
 	btbb_piconet_set_flag(pn, BTBB_HOP_REVERSAL_INIT, true);
@@ -523,7 +523,7 @@ void try_hop(btbb_packet * const pkt, btbb_piconet * const pn)
             {
 				if (filter_uap == pn->UAP)
                 {
-					btbb_init_hop_reversal(0, pn); // TODO: is aliased not implemented?, ask dominic
+					btbb_init_hop_reversal(false, pn); // TODO: is aliased not implemented?, ask dominic
 					btbb_winnow(pn);
 				} else
                 {
