@@ -34,6 +34,7 @@ static_assert(MAX_PAYLOAD_LENGTH * 8 <= std::numeric_limits<uint16_t>::max(), "i
 /* minimum header bit errors to indicate that this is an ID packet */
 constexpr uint8_t 	ID_THRESHOLD 	    = 5;
 
+// TODO: enum class?
 constexpr uint8_t 	PACKET_TYPE_NULL 	= 0;
 constexpr uint8_t 	PACKET_TYPE_POLL 	= 1;
 constexpr uint8_t 	PACKET_TYPE_FHS 	= 2;
@@ -52,11 +53,12 @@ constexpr uint8_t 	PACKET_TYPE_DM5 	= 14;
 constexpr uint8_t 	PACKET_TYPE_DH5 	= 15;
 
 template<typename DType>
-constexpr DType min(const DType value_A, const DType value_B)
+constexpr DType min(const DType value_A, const DType value_B) // TODO:std.lib
 {
 	return ((value_A < value_B) ? value_A : value_B);
 }
 
+// TODO: class structure, private vars
 struct btbb_packet {
 
 	uint32_t refcount;
@@ -117,6 +119,7 @@ struct btbb_packet {
 	uint8_t symbols[MAX_SYMBOLS];
 };
 
+// TODO: private methods, overload for decoding?
 /* type-specific CRC checks and decoding */
 uint16_t fhs(uint32_t clock, btbb_packet* p);
 uint16_t DM(uint32_t clock, btbb_packet* p);
@@ -129,24 +132,24 @@ uint16_t HV(uint32_t clock, btbb_packet* p);
 /* check if the packet's CRC is correct for a given clock (CLK1-6) */
 uint16_t crc_check(uint32_t clock, btbb_packet* p);
 
-/* format payload for tun interface */
+/* format payload for tun interface */  // TODO: what is it, convert to getTunFormat
 uint8_t * tun_format(btbb_packet* p);
 
 /* try a clock value (CLK1-6) to unwhiten packet header,
  * sets resultant d_packet_type and d_UAP, returns UAP.
  */
-uint8_t try_clock(uint32_t clock, btbb_packet * p);
+uint8_t try_clock(uint32_t clock, btbb_packet * p); // TODO: still part of packet? seems so
 
 /* extract LAP from FHS payload */
-uint32_t lap_from_fhs(btbb_packet* p);
+uint32_t lap_from_fhs(const btbb_packet* p);
 
 /* extract UAP from FHS payload */
-uint8_t uap_from_fhs(btbb_packet* p);
+uint8_t uap_from_fhs(const btbb_packet* p);
 
 /* extract NAP from FHS payload */
-uint16_t nap_from_fhs(btbb_packet* p);
+uint16_t nap_from_fhs(const btbb_packet* p);
 
 /* extract clock from FHS payload */
-uint32_t clock_from_fhs(btbb_packet* p);
+uint32_t clock_from_fhs(const btbb_packet* p);
 
 #endif /* INCLUDED_BLUETOOTH_PACKET_H */

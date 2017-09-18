@@ -24,6 +24,9 @@
 
 #include <cstdint>
 
+// TODO: all public interface?
+
+// TODO: enum class
 constexpr uint8_t BTBB_WHITENED    			= 0;
 constexpr uint8_t BTBB_NAP_VALID   			= 1;
 constexpr uint8_t BTBB_UAP_VALID   			= 2;
@@ -88,7 +91,7 @@ void btbb_packet_unref(btbb_packet *pkt);
  * specified, fills lap. 'ac_errors' must be set as an input, replaced
  * by actual number of errors on output. */
 int32_t btbb_find_ac(char *stream, int32_t search_length, uint32_t lap, int32_t max_ac_errors,
-	       btbb_packet **pkt);
+	       btbb_packet **pkt); // TODO: char *stream TO array<bool,bank_len>
 
 constexpr uint32_t 	LAP_ANY = uint32_t(0xffffffff);
 constexpr uint8_t 	UAP_ANY = 0xff;

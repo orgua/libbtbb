@@ -213,7 +213,7 @@ static void init_packet(btbb_packet *pkt, const uint32_t lap, const uint8_t ac_e
 	btbb_packet_set_flag(pkt, BTBB_WHITENED, 1);
 }
 
-/* Convert some number of bits of an air order array to a host order integer */
+/* Convert some number of bits of an air order array to a host order integer */ //TODO: could be template
 static uint8_t air_to_host8(const uint8_t * const air_order, const uint8_t bits)
 {
 	uint8_t host_order = 0;
@@ -228,6 +228,7 @@ static uint16_t air_to_host16(const uint8_t * const air_order, const uint8_t bit
 		host_order |= static_cast<uint16_t>(air_order[i] << i);
 	return host_order;
 }
+
 static uint32_t air_to_host32(const uint8_t * const air_order, const uint8_t bits)
 {
 	uint32_t host_order = 0;
@@ -444,7 +445,7 @@ size_t find_known_lap(const uint8_t * const stream, const size_t search_length, 
 	return offset;
 }
 
-/* Looks for an AC in the stream, NOTE: interface changed, -1 is now max() */
+/* Looks for an AC in the stream, NOTE: interface changed, -1 is now max() */ // TODO: const uint8_t * const stream, should be bool, look btbb.hpp
 size_t btbb_find_ac(const uint8_t * const stream, const size_t search_length, uint32_t lap,
 				 const size_t max_ac_errors, btbb_packet **pkt_ptr) {
 	size_t offset;

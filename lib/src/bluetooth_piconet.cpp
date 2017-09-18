@@ -22,7 +22,7 @@
 
 #include "bluetooth_packet.hpp"
 #include "bluetooth_piconet.hpp"
-#include "uthash.hpp"
+#include "uthash.hpp" // TODO: cpp has better hash
 
 #include <cstdlib>
 #include <cstdio>
